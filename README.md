@@ -1,1 +1,2 @@
-The workings of something great
+# PiStronomy
+A wonderful walk through the sky...
