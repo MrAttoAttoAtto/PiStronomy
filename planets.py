@@ -36,3 +36,6 @@ def get_planet_coords():
     coordinates = [(skyCoord.ra.hour, skyCoord.dec.degree) for skyCoord in skyCoordList]
 
     return coordinates
+
+if __name__ == '__main__':
+    print(get_planet_coords())
