@@ -2,7 +2,9 @@ import requests
 from PIL import Image
 from io import BytesIO
 
-def get_sky_picture(paramDict=None, ra=None, de=None):
+import tools
+
+def get_sky_picture(paramDict={}, ra=None, de=None):
     paramDict['survey'] = 'DSS2'
 
     if ra != None:
@@ -16,3 +18,18 @@ def get_sky_picture(paramDict=None, ra=None, de=None):
     image = Image.open(BytesIO(httpResponse.content))
 
     image.show()
+
+if __name__ == '__main__':
+    hours = int(input('Hours: '))
+    mins = int(input('Minutes: '))
+    secs = int(input('Seconds: '))
+    
+    deg = int(input('Degrees: '))
+    deg_min = int(input('Mins of arc: '))
+    deg_sec = int(input('Secs of arc: '))
+
+    ra = tools.from_hour_rep(hours, mins, secs)
+
+    dec = tools.from_min_rep(deg, deg_min, deg_sec)
+
+    get_sky_picture({}, ra, dec)
