@@ -19,6 +19,8 @@ def get_sky_picture(paramDict={}, ra=None, de=None):
 
     image.show()
 
+    image.save('noot.png')
+
 if __name__ == '__main__':
     hours = int(input('Hours: '))
     mins = int(input('Minutes: '))
