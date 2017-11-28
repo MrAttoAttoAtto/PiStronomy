@@ -50,6 +50,8 @@ def get_all_ssids():
 
     ssidSplit = rawNetworkData.split(b"SSID: ")
 
+    del ssidSplit[0]
+
     for ssidString in ssidSplit:
         ssid = ssidString.split(b"\n", 1)[0]
 
