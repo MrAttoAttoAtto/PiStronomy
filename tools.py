@@ -1,5 +1,6 @@
 '''Tools for converting between units (and possibly other things)'''
 import urllib.parse
+import socket
 
 def from_hour_rep(hours, mins, secs):
     answer = hours % 24
@@ -28,3 +29,15 @@ def from_min_rep(deg, mins, secs):
 def from_hex_unicode_rep(ssid):
     ssid = ssid.encode('latin-1').decode('utf8')
     return urllib.parse.unquote(ssid)
+
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
