@@ -1,6 +1,7 @@
 '''Tools for converting between units (and possibly other things)'''
 import urllib.parse
 import socket
+import subprocess
 
 def from_hour_rep(hours, mins, secs):
     answer = hours % 24
@@ -41,3 +42,19 @@ def get_ip():
     finally:
         s.close()
     return IP
+
+def get_all_ssids():
+    ssidList = []
+
+    rawNetworkData = subprocess.check_output(["sudo", "iw", "wlan0", "scan"])
+
+    ssidSplit = rawNetworkData.split(b"SSID: ")
+
+    for ssidString in ssidSplit:
+        ssid = ssidString.split(b"\n", 1)[0]
+
+        realSSID = from_hex_unicode_rep(ssid)
+
+        ssidList.append(realSSID)
+    
+    return ssidList
