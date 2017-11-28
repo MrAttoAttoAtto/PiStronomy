@@ -29,7 +29,7 @@ def from_min_rep(deg, mins, secs):
 
 def from_hex_unicode_rep(ssid):
     ssid = ssid.decode('unicode-escape')
-    ssid = ssid.decode().encode('latin-1').decode('utf8')
+    ssid = ssid.encode('latin-1').decode('utf8')
     return urllib.parse.unquote(ssid)
 
 def get_ip():
