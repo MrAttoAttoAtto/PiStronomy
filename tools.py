@@ -53,7 +53,7 @@ def get_all_ssids():
     for ssidString in ssidSplit:
         ssid = ssidString.split(b"\n", 1)[0]
 
-        realSSID = from_hex_unicode_rep(ssid)
+        realSSID = from_hex_unicode_rep(ssid.decode())
 
         ssidList.append(realSSID)
     
