@@ -28,7 +28,8 @@ def from_min_rep(deg, mins, secs):
     return -answer if negative else answer
 
 def from_hex_unicode_rep(ssid):
-    ssid = ssid.encode('latin-1').decode('utf8')
+    ssid = ssid.decode('unicode-escape')
+    ssid = ssid.decode().encode('latin-1').decode('utf8')
     return urllib.parse.unquote(ssid)
 
 def get_ip():
@@ -55,7 +56,7 @@ def get_all_ssids():
     for ssidString in ssidSplit:
         ssid = ssidString.split(b"\n", 1)[0]
 
-        realSSID = from_hex_unicode_rep(ssid.decode())
+        realSSID = from_hex_unicode_rep(ssid)
 
         ssidList.append(realSSID)
     
