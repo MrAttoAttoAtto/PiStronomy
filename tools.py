@@ -13,6 +13,7 @@ def from_hour_rep(hours, mins, secs):
 def from_min_rep(deg, mins, secs):
     if abs(deg) != deg:
         negative = True
+        deg = abs(deg)
     else:
         negative = False
 
