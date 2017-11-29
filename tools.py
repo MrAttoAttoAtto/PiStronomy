@@ -2,6 +2,12 @@
 import urllib.parse
 import socket
 import subprocess
+import os
+
+if os.name == 'nt':
+    WINDOWS = True
+else:
+    WINDOWS = False
 
 def from_hour_rep(hours, mins, secs):
     answer = hours % 24
@@ -46,6 +52,9 @@ def get_ip():
 
 def get_all_ssids():
     ssidList = []
+
+    if WINDOWS:
+        command = ["netsh", "wlan", "show", "networks"]
 
     rawNetworkData = subprocess.check_output(["sudo", "iw", "wlan0", "scan"])
 
