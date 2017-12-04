@@ -55,8 +55,10 @@ def get_all_ssids():
 
     if WINDOWS:
         command = ["netsh", "wlan", "show", "networks"]
+    else:
+        command = ["sudo", "iw", "wlan0", "scan"]
 
-    rawNetworkData = subprocess.check_output(["sudo", "iw", "wlan0", "scan"])
+    rawNetworkData = subprocess.check_output(command)
 
     ssidSplit = rawNetworkData.split(b"SSID: ")
 
@@ -74,18 +76,20 @@ def get_all_ssids():
 def mobile_connect(ssid, password):
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
     str_to_write = \
-    '''\n#mobile_connect
+    '''
+    #mobile_connect
     network={
-        ssid={}
-        psk={}
+        ssid=%s
+        psk=%s
         priority=2
-    }'''.format(ssid, password)
+    }''' % (ssid, password)
+
+    print(str_to_write)
 
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'a') as f:
         f.write(str_to_write)
     
     update_wlan_config = subprocess.Popen(command)
-    update_wlan_config.communicate()
 
     return
 
