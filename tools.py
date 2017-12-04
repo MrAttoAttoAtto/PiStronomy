@@ -81,6 +81,8 @@ def mobile_connect(ssid, password):
 
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'a') as f:
         f.write(str_to_write)
+
+    time.sleep(2)
     
     update_wlan_config = subprocess.Popen(command)
 
