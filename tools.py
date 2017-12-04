@@ -75,14 +75,7 @@ def get_all_ssids():
 
 def mobile_connect(ssid, password):
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
-    str_to_write = \
-    '''
-    #mobile_connect
-    network={
-        ssid=%s
-        psk=%s
-        priority=2
-    }''' % (ssid, password)
+    str_to_write = '\n#mobile_connect\nnetwork={\n\tssid="%s"\n\tpsk="%s"\n\tpriority=2\n}' % (ssid, password)
 
     print(str_to_write)
 
