@@ -70,3 +70,37 @@ def get_all_ssids():
         ssidList.append(realSSID)
     
     return ssidList
+
+def mobile_connect(ssid, password):
+    command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
+    str_to_write = \
+    '''\n#mobile_connect
+    network={
+        ssid={}
+        psk={}
+        priority=2
+    }'''.format(ssid, password)
+
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'a') as f:
+        f.write(str_to_write)
+    
+    update_wlan_config = subprocess.Popen(command)
+    update_wlan_config.communicate()
+
+    return
+
+def delete_prior_connection():
+    str_to_check = "\n#mobile_connect"
+
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'r') as f:
+        wpa_contents = f.read()
+    
+    prior_string = wpa_contents.split(str_to_check)[0]
+
+    print(prior_string)
+    return
+
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'w') as f:
+        f.write(prior_string)
+
+    return

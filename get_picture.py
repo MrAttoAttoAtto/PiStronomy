@@ -13,9 +13,9 @@ def get_sky_picture(paramDict={}, ra=None, de=None):
     if de != None:
         paramDict['de'] = de
 
-    httpResponse = requests.get('http://server4.wikisky.org/imgcut', params=paramDict)
+    http_response = requests.get('http://server4.wikisky.org/imgcut', params=paramDict)
 
-    image = Image.open(BytesIO(httpResponse.content))
+    image = Image.open(BytesIO(http_response.content))
 
     image.show()
 
