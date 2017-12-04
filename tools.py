@@ -98,7 +98,6 @@ def delete_prior_connection():
     prior_string = wpa_contents.split(str_to_check)[0]
 
     print(prior_string)
-    return
 
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'w') as f:
         f.write(prior_string)
