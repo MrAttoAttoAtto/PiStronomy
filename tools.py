@@ -84,7 +84,7 @@ def mobile_connect(ssid, password):
         f.write(str_to_write)
 
     time.sleep(2)
-    
+
     update_wlan_config = subprocess.Popen(command)
     update_wlan_config.communicate()
 
@@ -96,7 +96,7 @@ def delete_prior_connection():
 
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'r') as f:
         wpa_contents = f.read()
-    
+
     prior_string = wpa_contents.split(str_to_check)[0]
 
     print(prior_string)
