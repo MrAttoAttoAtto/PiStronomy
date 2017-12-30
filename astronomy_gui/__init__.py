@@ -1,22 +1,9 @@
-from rational_gui import lockedScreen, verificationScreen, fingerprintScreen, hudScreen, dispenseScreen, adminScreen, refillScreen
+from astronomy_gui import lockedScreen
 
 __all__ = [
-    'controller',
-    'hudScreen',
-    'lockedScreen',
-    'verificationScreen',
-    'adminScreen',
-    'dispenseScreen',
-    'fingerprintScreen',
-    'hudScreen'
+    'lockedScreen'
 ]
 
 pages = [
-    lockedScreen.LockedScreen,
-    verificationScreen.VerificationScreen,
-    fingerprintScreen.FingerprintScreen,
-    hudScreen.HudScreen,
-    dispenseScreen.DispenseScreen,
-    adminScreen.AdminScreen,
-    refillScreen.RefillScreen
+    lockedScreen.LockedScreen
 ]
