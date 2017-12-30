@@ -21,7 +21,7 @@ def get_sky_picture(paramDict={}, ra=None, de=None):
 
     image.save('noot.png')
 
-if __name__ == '__main__':
+def prompt_sky_picture():
     hours = int(input('Hours: '))
     mins = int(input('Minutes: '))
     secs = int(input('Seconds: '))
@@ -35,3 +35,6 @@ if __name__ == '__main__':
     dec = tools.from_min_rep(deg, deg_min, deg_sec)
 
     get_sky_picture({}, ra, dec)
+
+if __name__ == '__main__':
+    prompt_sky_picture()
