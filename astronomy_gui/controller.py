@@ -15,10 +15,12 @@ class Controller(tk.Tk):
 
         if fullscreen:
             w, h = self.winfo_screenwidth(), self.winfo_screenheight()
-            self.overrideredirect(1)
+            self.attributes('-fullscreen', True)
             self.geometry("{}x{}+0+0".format(w, h))
         else:
             self.geometry('{}x{}'.format(800, 480))
+
+        self.focus_set()
 
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
