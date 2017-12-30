@@ -1,11 +1,12 @@
 '''The gui controller'''
 import tkinter as tk
+import tkinter.font
 
 class Controller(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.title_font = tk.font.Font(
+        self.title_font = tkinter.font.Font(
             family='Helvetica', size=18, weight="bold", slant="italic")
 
         self.resizable(width=False, height=False)
