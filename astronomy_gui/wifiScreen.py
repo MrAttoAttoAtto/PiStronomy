@@ -46,6 +46,7 @@ class WifiScreen(Page):
         self.ssid_queue = queue.Queue(1)
 
         ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put(get_all_ssids()))
+        ssid_list_process.start()
         
         CONTROLLER.after(CHECK_FREQUENCY, lambda: self.check_thread(ssid_list_process, self.display_ssids))
 
