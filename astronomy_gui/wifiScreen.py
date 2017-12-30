@@ -48,7 +48,7 @@ class WifiScreen(Page):
         ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put(get_all_ssids()))
         ssid_list_process.start()
         
-        CONTROLLER.after(CHECK_FREQUENCY, lambda: self.check_thread(ssid_list_process, self.display_ssids))
+        CONTROLLER.after(CHECK_FREQUENCY, lambda: self.check_thread(ssid_list_process, lambda: self.display_ssids(load_label)))
 
     def update_loading_gif(self, index, label):
         ''' update gif things '''
@@ -71,7 +71,12 @@ class WifiScreen(Page):
         else:
             callback()
 
-    def display_ssids(self):
-        ssids = self.ssid_queue.get()
-        print(ssids)
+    def display_ssids(self, label):
+        try:
+            ssids = self.ssid_queue.get(block=False)
+            print(ssids)
+        except queue.Empty:
+            print("ERROR GETTING AVAILABLE NETWORKS")
+        
+        label.pack_forget()
     

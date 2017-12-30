@@ -61,16 +61,25 @@ def get_all_ssids():
 
     rawNetworkData = subprocess.check_output(command)
 
-    ssidSplit = rawNetworkData.split(b"SSID: ")
+    if not WINDOWS:
+        ssidSplit = rawNetworkData.split(b"SSID: ")
 
-    del ssidSplit[0]
+        del ssidSplit[0]
 
-    for ssidString in ssidSplit:
-        ssid = ssidString.split(b"\n", 1)[0]
+        for ssidString in ssidSplit:
+            ssid = ssidString.split(b"\n", 1)[0]
 
-        realSSID = from_hex_unicode_rep(ssid)
+            realSSID = from_hex_unicode_rep(ssid)
 
-        ssidList.append(realSSID)
+            ssidList.append(realSSID)
+    else:
+        ssidSplit = rawNetworkData.split(b"SSID ")
+        del ssidSplit[0]
+
+        for ssidString in ssidSplit:
+            ssid = ssidString.split(b"\n", 1)[0].split(b": ")[1]
+
+            ssidList.append(ssid)
     
     return ssidList
 
