@@ -52,7 +52,7 @@ class WifiScreen(Page):
 
     def update_loading_gif(self, index, label):
         ''' update gif things '''
-        print(index)
+        #print(index)
 
         try:
             loading_image = tk.PhotoImage(file=self.loading_gif_path, format="gif -index {}".format(index))
