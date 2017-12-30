@@ -44,44 +44,44 @@ def get_ip():
     try:
         # doesn't even have to be reachable
         s.connect(('8.8.8.8', 80))
-        IP = s.getsockname()[0]
+        current_ip = s.getsockname()[0]
     except:
-        IP = '127.0.0.1'
+        current_ip = '127.0.0.1'
     finally:
         s.close()
-    return IP
+    return current_ip
 
 def get_all_ssids():
-    ssidList = []
+    ssid_list = []
 
     if WINDOWS:
         command = ["netsh", "wlan", "show", "networks"]
     else:
         command = ["sudo", "iw", "wlan0", "scan"]
 
-    rawNetworkData = subprocess.check_output(command)
+    raw_network_data = subprocess.check_output(command)
 
     if not WINDOWS:
-        ssidSplit = rawNetworkData.split(b"SSID: ")
+        ssid_split = raw_network_data.split(b"SSID: ")
 
-        del ssidSplit[0]
+        del ssid_split[0]
 
-        for ssidString in ssidSplit:
-            ssid = ssidString.split(b"\n", 1)[0]
+        for ssid_string in ssid_split:
+            ssid = ssid_string.split(b"\n", 1)[0]
 
-            realSSID = from_hex_unicode_rep(ssid)
+            real_ssid = from_hex_unicode_rep(ssid)
 
-            ssidList.append(realSSID)
+            ssid_list.append(real_ssid)
     else:
-        ssidSplit = rawNetworkData.split(b"SSID ")
-        del ssidSplit[0]
+        ssid_split = raw_network_data.split(b"SSID ")
+        del ssid_split[0]
 
-        for ssidString in ssidSplit:
-            ssid = ssidString.split(b"\n", 1)[0].split(b": ")[1]
+        for ssid_string in ssid_split:
+            ssid = ssid_string.split(b"\r\n", 1)[0].split(b": ")[1]
 
-            ssidList.append(ssid)
+            ssid_list.append(ssid.decode())
     
-    return ssidList
+    return ssid_list
 
 def mobile_connect(ssid, password):
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
@@ -89,8 +89,8 @@ def mobile_connect(ssid, password):
 
     print(str_to_write)
 
-    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'a') as f:
-        f.write(str_to_write)
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'a') as fil:
+        fil.write(str_to_write)
 
     time.sleep(2)
 
@@ -103,15 +103,15 @@ def delete_prior_connection():
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
     str_to_check = "\n#mobile_connect"
 
-    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'r') as f:
-        wpa_contents = f.read()
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'r') as fil:
+        wpa_contents = fil.read()
 
     prior_string = wpa_contents.split(str_to_check)[0]
 
     print(prior_string)
 
-    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'w') as f:
-        f.write(prior_string)
+    with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'w') as fil:
+        fil.write(prior_string)
 
     time.sleep(2)
     
