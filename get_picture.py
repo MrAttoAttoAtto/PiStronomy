@@ -17,9 +17,11 @@ def get_sky_picture(paramDict={}, ra=None, de=None):
 
     image = Image.open(BytesIO(http_response.content))
 
-    image.show()
+    return image
 
-    image.save('noot.png')
+    #image.show()
+
+    #image.save('noot.png')
 
 def prompt_sky_picture():
     hours = int(input('Hours: '))

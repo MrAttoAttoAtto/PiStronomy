@@ -7,6 +7,6 @@ from astronomy_gui.controller import CONTROLLER
 for clas in pages:
     CONTROLLER.add_page(clas)
 
-CONTROLLER.show_page('WifiScreen')
+CONTROLLER.show_page('AstroScreen')
 
 tk.mainloop()

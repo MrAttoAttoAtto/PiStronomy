@@ -1,6 +1,7 @@
 import queue
 import threading
 import tkinter as tk
+from PIL import ImageTk
 
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
@@ -34,14 +35,23 @@ class AstroScreen(Page):
 
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, True))
 
-        self.ssid_queue = queue.Queue(1)
+        self.image_queue = queue.Queue(1)
 
-        '''ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put(get_sky_picture(ra=3, de=30)))
+        ssid_list_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(ra=3, de=30)))
         ssid_list_process.start()
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(ssid_list_process,
-                                                   self.noot))'''
+                                                   self.display_image))
     
-    def noot(self):
-        print("Noot")
+    def display_image(self):
+        self.load_label.pack_forget()
+
+        image = self.image_queue.get()
+
+        tk_image = ImageTk.PhotoImage(image)
+
+        image_label = tk.Label(self, image=tk_image)
+        image_label.image = tk_image
+
+        image_label.pack()

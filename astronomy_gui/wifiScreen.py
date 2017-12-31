@@ -70,8 +70,8 @@ class WifiScreen(Page):
             result_tuple = self.ssid_queue.get(block=False)
             print(result_tuple)
             ssids = result_tuple[0]
-            #self.current_network = result_tuple[1] or "NOT CONNECTED"
-            self.current_network = 'NETGEAR59-5G'
+            self.current_network = result_tuple[1] or "NOT CONNECTED"
+            #self.current_network = 'NETGEAR59-5G'
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
@@ -94,7 +94,7 @@ class WifiScreen(Page):
                 ssid += " - Saved"
             self.ssid_listbox.insert(tk.END, ssid)
 
-        if connect_index is not None:
+        if 'connect_index' in locals():
             self.ssid_listbox.itemconfig(connect_index, fg='green')
         
         for index in saved_available_indexes:
@@ -162,8 +162,8 @@ class WifiScreen(Page):
         try:
             result_tuple = self.ssid_queue.get(block=False)
             ssids = result_tuple[0]
-            #self.current_network = result_tuple[1] or "NOT CONNECTED"
-            self.current_network = 'NETGEAR59-5G'
+            self.current_network = result_tuple[1] or "NOT CONNECTED"
+            #self.current_network = 'NETGEAR59-5G'
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
@@ -183,7 +183,7 @@ class WifiScreen(Page):
                 ssid += " - Saved"
             self.ssid_listbox.insert(tk.END, ssid)
         
-        if connect_index is not None:
+        if 'connect_index' in locals():
             self.ssid_listbox.itemconfig(connect_index, fg='green')
         
         for index in saved_available_indexes:
