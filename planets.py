@@ -1,6 +1,7 @@
 import time
 import threading
 from queue import Queue, Full
+from collections import OrderedDict
 
 from astropy.time import Time
 from astropy.coordinates import EarthLocation, get_body, solar_system_ephemeris
@@ -20,6 +21,7 @@ MAPPING_DICT = {
     'Moon':8,
     'Sun':9
 }
+MAPPING_DICT = OrderedDict(MAPPING_DICT)
 
 def get_planet_coords():
     formatted_time = time.strftime("%Y-%m-%d %H:%M")
