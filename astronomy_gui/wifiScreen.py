@@ -11,22 +11,16 @@ from tools import get_all_ssids, mobile_connect, get_current_ssid, delete_prior_
 
 WINDOWS = os.name == 'nt'
 
-# ms before gif update
-LOADING_GIF_FREQUENCY = 30
-
-# ms before thread re-check
-CHECK_FREQUENCY = 200
-
-#locked screen class
+#wifi screen class
 class WifiScreen(Page):
     def __init__(self, parent):
         #setup things
         super().__init__(parent)
 
-        self.known_configuarions = json.load(open("wifi_settings.json"))
+        self.current_network = 'NOT CONNECTED'
 
-        self.loading_gif_path = get_imagepath("loadingIcon")
-        print(self.loading_gif_path)
+        self.known_configurations = json.load(open("wifi_settings.json"))
+        self.known_ssids = [diction['ssid'] for diction in self.known_configurations]
 
         load_image = tk.PhotoImage(file=self.loading_gif_path, format='gif -index 0')
 
@@ -60,46 +54,24 @@ class WifiScreen(Page):
         refresh_button = tk.Button(self, text="Refresh", command=self.wifi_refresh, font=("Helvetica", 20), fg='cyan', activeforeground='cyan')
         refresh_button.grid(row=4, column=3, pady=16)
 
-        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, True))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, True))
 
         self.ssid_queue = queue.Queue(1)
 
         ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put((get_all_ssids(), get_current_ssid())))
         ssid_list_process.start()
 
-        CONTROLLER.after(CHECK_FREQUENCY,
+        CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(ssid_list_process,
                                                    lambda: self.display_ssids(self.load_label)))
-
-    def update_loading_gif(self, index, label, ignore_placement=False):
-        ''' update gif things '''
-        if not label.winfo_ismapped() and not ignore_placement:
-            return
-
-        try:
-            loading_image = tk.PhotoImage(file=self.loading_gif_path,
-                                          format="gif -index {}".format(index))
-        except tk.TclError:
-            loading_image = tk.PhotoImage(file=self.loading_gif_path, format="gif -index 0")
-            index = 0
-
-        label.configure(image=loading_image)
-        label.image = loading_image
-
-        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(index+1, label))
-
-    def check_thread(self, thread, callback):
-        if thread.is_alive():
-            CONTROLLER.after(CHECK_FREQUENCY, lambda: self.check_thread(thread, callback))
-        else:
-            callback()
 
     def display_ssids(self, label):
         try:
             result_tuple = self.ssid_queue.get(block=False)
             print(result_tuple)
             ssids = result_tuple[0]
-            self.current_network = result_tuple[1] or "NOT CONNECTED"
+            #self.current_network = result_tuple[1] or "NOT CONNECTED"
+            self.current_network = 'NETGEAR59-5G'
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
@@ -111,10 +83,23 @@ class WifiScreen(Page):
 
         self.ssid_listbox = tk.Listbox(self, yscrollcommand=self.ssid_scrollbar.set, font=("Helvetica", 20))
 
+        saved_available_indexes = []
+
         for ssid in ssids:
             if ssid == self.current_network:
+                connect_index = ssids.index(ssid)
                 ssid += " - Connected"
+            elif ssid in self.known_ssids:
+                saved_available_indexes.append(ssids.index(ssid))
+                ssid += " - Saved"
             self.ssid_listbox.insert(tk.END, ssid)
+
+        if connect_index is not None:
+            self.ssid_listbox.itemconfig(connect_index, fg='green')
+        
+        for index in saved_available_indexes:
+            self.ssid_listbox.itemconfig(index, fg='cyan')
+
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
 
         self.ssid_scrollbar.config(command=self.ssid_listbox.yview)
@@ -127,12 +112,15 @@ class WifiScreen(Page):
             print("You can't connect to the same network you're connected to!")
             # TODO: add error box
             return
+        
+        if selected_ssid.endswith(" - Saved"):
+            selected_ssid = selected_ssid[:-8]
 
-        if not selected_ssid in [diction['ssid'] for diction in self.known_configuarions]:
+        if not selected_ssid in self.known_ssids:
             # do extra password getting
             pass
         else:
-            for diction in self.known_configuarions:
+            for diction in self.known_configurations:
                 if diction['ssid'] == selected_ssid:
                     psk = diction['psk']
                     break
@@ -142,13 +130,13 @@ class WifiScreen(Page):
 
         self.load_label.grid()
 
-        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
 
         change_connection_process = threading.Thread(None, lambda: (delete_prior_connection(), mobile_connect(selected_ssid, psk),
                                                                     self.ssid_queue.put((get_all_ssids(), get_current_ssid()))))
         change_connection_process.start()
 
-        CONTROLLER.after(CHECK_FREQUENCY,
+        CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(change_connection_process,
                                                    lambda: self.update_ssids(self.load_label)))
     
@@ -158,24 +146,24 @@ class WifiScreen(Page):
 
         self.load_label.grid()
 
-        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
 
         ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put((get_all_ssids(), get_current_ssid())))
         ssid_list_process.start()
 
-        CONTROLLER.after(CHECK_FREQUENCY,
+        CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(ssid_list_process,
                                                    lambda: self.update_ssids(self.load_label)))
     
     def back(self):
-        CONTROLLER.show_page('mainMenu')
+        CONTROLLER.show_page('MainMenu')
     
     def update_ssids(self, label):
         try:
             result_tuple = self.ssid_queue.get(block=False)
-            print(result_tuple)
             ssids = result_tuple[0]
-            self.current_network = result_tuple[1] or "NOT CONNECTED"
+            #self.current_network = result_tuple[1] or "NOT CONNECTED"
+            self.current_network = 'NETGEAR59-5G'
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
@@ -184,10 +172,22 @@ class WifiScreen(Page):
 
         self.ssid_listbox.delete(0, tk.END)
 
+        saved_available_indexes = []
+
         for ssid in ssids:
             if ssid == self.current_network:
+                connect_index = ssids.index(ssid)
                 ssid += " - Connected"
+            elif ssid in self.known_ssids:
+                saved_available_indexes.append(ssids.index(ssid))
+                ssid += " - Saved"
             self.ssid_listbox.insert(tk.END, ssid)
+        
+        if connect_index is not None:
+            self.ssid_listbox.itemconfig(connect_index, fg='green')
+        
+        for index in saved_available_indexes:
+            self.ssid_listbox.itemconfig(index, fg='cyan')
 
         self.ssid_scrollbar.grid()
         self.ssid_listbox.grid()

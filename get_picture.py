@@ -34,7 +34,7 @@ def prompt_sky_picture():
 
     dec = tools.from_min_rep(deg, deg_min, deg_sec)
 
-    get_sky_picture({}, ra, dec)
+    get_sky_picture(ra=ra, de=dec)
 
 if __name__ == '__main__':
     prompt_sky_picture()
