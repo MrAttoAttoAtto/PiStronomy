@@ -145,7 +145,8 @@ class WifiScreen(Page):
 
         CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
 
-        change_connection_process = threading.Thread(None, lambda: self.ssid_queue.put((delete_prior_connection(), mobile_connect(selected_ssid, psk))))
+        change_connection_process = threading.Thread(None, lambda: (delete_prior_connection(), mobile_connect(selected_ssid, psk),
+                                                                    self.ssid_queue.put((get_all_ssids(), get_current_ssid()))))
         change_connection_process.start()
 
         CONTROLLER.after(CHECK_FREQUENCY,
