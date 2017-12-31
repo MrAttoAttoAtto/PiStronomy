@@ -10,16 +10,16 @@ PLANET_COORDINATES = Queue(1)
 PLANET_COORDINATES.put([])
 
 MAPPING_DICT = {
-    'Mercury':0,
-    'Venus':1,
-    'Mars':2,
-    'Jupiter':3,
-    'Saturn':4,
-    'Uranus':5,
-    'Neptune':6,
-    'Pluto':7,
-    'Moon':8,
-    'Sun':9
+    ['Mercury', 0],
+    ['Venus', 1],
+    ['Mars', 2],
+    ['Jupiter', 3],
+    ['Saturn', 4],
+    ['Uranus', 5],
+    ['Neptune', 6],
+    ['Pluto', 7],
+    ['Moon', 8],
+    ['Sun', 9]
 }
 MAPPING_DICT = OrderedDict(MAPPING_DICT)
 
