@@ -19,7 +19,7 @@ def from_hour_rep(hours, mins, secs):
 
     return answer
 
-def from_min_rep(deg, mins, secs):
+def from_deg_rep(deg, mins, secs):
     if abs(deg) != deg:
         negative = True
         deg = abs(deg)

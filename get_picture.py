@@ -34,7 +34,7 @@ def prompt_sky_picture():
 
     ra = tools.from_hour_rep(hours, mins, secs)
 
-    dec = tools.from_min_rep(deg, deg_min, deg_sec)
+    dec = tools.from_deg_rep(deg, deg_min, deg_sec)
 
     get_sky_picture(ra=ra, de=dec)
 

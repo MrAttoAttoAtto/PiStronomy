@@ -8,6 +8,7 @@ from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
 from get_picture import get_sky_picture
+from tools import from_hour_rep, from_deg_rep
 
 #astronomy main screen class
 class AstroScreen(Page):
@@ -38,7 +39,7 @@ class AstroScreen(Page):
 
         self.image_queue = queue.Queue(1)
 
-        ssid_list_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(ra=3, de=30)))
+        ssid_list_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(ra=from_hour_rep(3, 47, 24), de=from_deg_rep(24, 7, 0))))
         ssid_list_process.start()
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
