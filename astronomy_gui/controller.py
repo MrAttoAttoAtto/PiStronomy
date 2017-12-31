@@ -3,6 +3,8 @@ import os
 import tkinter as tk
 import tkinter.font
 
+from tools import delete_prior_connection
+
 class Controller(tk.Tk):
     def __init__(self, fullscreen=False, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -40,6 +42,10 @@ class Controller(tk.Tk):
     def add_page(self, page):
         self.pages[page.__name__] = page(parent=self.container)
         self.pages[page.__name__].grid(row=0, column=0, sticky="nsew")
+    
+    def destroy(self):
+        super().destroy()
+        delete_prior_connection()
 
 if os.name == "nt":
     CONTROLLER = Controller(False)
