@@ -1,10 +1,10 @@
-import tkinter as tk
-import threading
 import queue
+import threading
+import tkinter as tk
 
+from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
-from astronomy_gui.controller import CONTROLLER
 from tools import get_all_ssids
 
 # ms before gif update
@@ -22,24 +22,25 @@ class WifiScreen(Page):
         self.loading_gif_path = get_imagepath("loadingIcon")
         print(self.loading_gif_path)
 
-        #lockedButton = tk.PhotoImage(file=get_imagepath("unlockTest"))
         load_image = tk.PhotoImage(file=self.loading_gif_path, format='gif -index 0')
 
         self.width = 800
         self.height = 480
         self.grid()
 
-        #background things
+        #instruction label
+        instr_label = tk.Label(self, text="Please select a network to connect to:", font=("Helvetica", 34))
+        instr_label.grid(row=0, column=1, columnspan=3)
+
+        #loading things
         load_label = tk.Label(self, image=load_image)
-        #load_label = tk.Label(self, text="jjj")
         load_label.image = load_image
-        load_label.pack()
+        load_label.grid(row=1, column=0, columnspan=5, rowspan=3)
 
         #submit button things
-        #submit_button = tk.Button(self, image=lockedButton, command=lambda: print("noot"),
-        #                          bg="black", activebackground="black", bd=0, highlightthickness=0)
+        submit_button = tk.Button(self, text="Connect", command=lambda: print("noot"), font=("Helvetica", 20), fg='green')
         #submit_button.image = lockedButton
-        #submit_button.grid(row=1, column=1, padx=326, pady=151)
+        submit_button.grid(row=4, column=2, pady=16)
 
         CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, load_label))
 
@@ -47,15 +48,17 @@ class WifiScreen(Page):
 
         ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put(get_all_ssids()))
         ssid_list_process.start()
-        
-        CONTROLLER.after(CHECK_FREQUENCY, lambda: self.check_thread(ssid_list_process, lambda: self.display_ssids(load_label)))
+
+        CONTROLLER.after(CHECK_FREQUENCY,
+                         lambda: self.check_thread(ssid_list_process,
+                                                   lambda: self.display_ssids(load_label)))
 
     def update_loading_gif(self, index, label):
         ''' update gif things '''
-        #print(index)
 
         try:
-            loading_image = tk.PhotoImage(file=self.loading_gif_path, format="gif -index {}".format(index))
+            loading_image = tk.PhotoImage(file=self.loading_gif_path,
+                                          format="gif -index {}".format(index))
         except tk.TclError:
             loading_image = tk.PhotoImage(file=self.loading_gif_path, format="gif -index 0")
             index = 0
@@ -77,6 +80,17 @@ class WifiScreen(Page):
             print(ssids)
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
-        
-        label.pack_forget()
-    
+            ssids = []
+
+        label.grid_forget()
+
+        ssid_scrollbar = tk.Scrollbar(self)
+        ssid_scrollbar.grid(row=1, column=4, rowspan=3, sticky=tk.W+tk.N+tk.S)
+
+        ssid_listbox = tk.Listbox(self, yscrollcommand=ssid_scrollbar.set, font=("Helvetica", 20))
+
+        for ssid in ssids:
+            ssid_listbox.insert(tk.END, ssid)
+        ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
+
+        ssid_scrollbar.config(command=ssid_listbox.yview)
