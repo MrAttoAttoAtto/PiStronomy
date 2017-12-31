@@ -76,7 +76,6 @@ class WifiScreen(Page):
         if not label.winfo_ismapped() and not ignore_placement:
             return
 
-        print("go!")
         try:
             loading_image = tk.PhotoImage(file=self.loading_gif_path,
                                           format="gif -index {}".format(index))
