@@ -104,8 +104,6 @@ class WifiScreen(Page):
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
 
         self.ssid_scrollbar.config(command=self.ssid_listbox.yview)
-
-        print(threading.active_count())
     
     def wifi_connect(self):
         pass
@@ -146,15 +144,3 @@ class WifiScreen(Page):
         self.ssid_scrollbar.grid(row=1, column=4, rowspan=3, sticky=tk.W+tk.N+tk.S)
 
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
-
-        print(threading.active_count())
-
-    @staticmethod
-    def all_children(wid):
-        _list = wid.winfo_children()
-
-        for item in _list :
-            if item.winfo_children():
-                _list.extend(item.winfo_children())
-
-        return _list
