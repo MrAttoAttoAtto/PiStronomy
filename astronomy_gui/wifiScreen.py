@@ -35,7 +35,7 @@ class WifiScreen(Page):
         #loading things
         self.load_label = tk.Label(self, image=load_image)
         self.load_label.image = load_image
-        self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3)
+        self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=37)
 
         #submit button things
         submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green', activeforeground='green')
@@ -92,7 +92,7 @@ class WifiScreen(Page):
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
 
-        label.grid_forget()
+        label.grid_remove()
 
         self.ssid_scrollbar = tk.Scrollbar(self)
         self.ssid_scrollbar.grid(row=1, column=4, rowspan=3, sticky=tk.W+tk.N+tk.S)
@@ -109,10 +109,10 @@ class WifiScreen(Page):
         pass
     
     def wifi_refresh(self):
-        self.ssid_listbox.grid_forget()
-        self.ssid_scrollbar.grid_forget()
+        self.ssid_listbox.grid_remove()
+        self.ssid_scrollbar.grid_remove()
 
-        self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3)
+        self.load_label.grid()
 
         CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
 
@@ -134,13 +134,12 @@ class WifiScreen(Page):
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
 
-        label.grid_forget()
+        label.grid_remove()
 
         self.ssid_listbox.delete(0, tk.END)
 
         for ssid in ssids:
             self.ssid_listbox.insert(tk.END, ssid)
 
-        self.ssid_scrollbar.grid(row=1, column=4, rowspan=3, sticky=tk.W+tk.N+tk.S)
-
-        self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
+        self.ssid_scrollbar.grid()
+        self.ssid_listbox.grid()
