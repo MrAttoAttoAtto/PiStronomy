@@ -2,6 +2,7 @@ import json
 import os
 import queue
 import threading
+import time
 import tkinter as tk
 
 from astronomy_gui.controller import CONTROLLER
@@ -54,7 +55,7 @@ class WifiScreen(Page):
         refresh_button = tk.Button(self, text="Refresh", command=self.wifi_refresh, font=("Helvetica", 20), fg='cyan', activeforeground='cyan')
         refresh_button.grid(row=4, column=3, pady=16)
 
-        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, True))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         self.ssid_queue = queue.Queue(1)
 

@@ -1,5 +1,6 @@
 import queue
 import threading
+import time
 import tkinter as tk
 from PIL import ImageTk
 
@@ -33,7 +34,7 @@ class AstroScreen(Page):
         submit_button = tk.Button(self, text="Go To Wifi", command=lambda: CONTROLLER.show_page('WifiScreen'), font=("Helvetica", 20), fg='green', activeforeground='green')
         submit_button.pack()
 
-        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, True))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         self.image_queue = queue.Queue(1)
 
