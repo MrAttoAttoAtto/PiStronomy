@@ -7,7 +7,7 @@ import tkinter as tk
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
-from tools import get_all_ssids, mobile_connect, get_current_ssid
+from tools import get_all_ssids, mobile_connect, get_current_ssid, delete_prior_connection
 
 WINDOWS = os.name == 'nt'
 
@@ -138,7 +138,19 @@ class WifiScreen(Page):
                     psk = diction['psk']
                     break
         
-        mobile_connect(selected_ssid, psk)
+        self.ssid_listbox.grid_remove()
+        self.ssid_scrollbar.grid_remove()
+
+        self.load_label.grid()
+
+        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
+
+        change_connection_process = threading.Thread(None, lambda: self.ssid_queue.put((delete_prior_connection(), mobile_connect(selected_ssid, psk))))
+        change_connection_process.start()
+
+        CONTROLLER.after(CHECK_FREQUENCY,
+                         lambda: self.check_thread(change_connection_process,
+                                                   lambda: self.update_ssids(self.load_label)))
     
     def wifi_refresh(self):
         self.ssid_listbox.grid_remove()
