@@ -1,3 +1,5 @@
+import json
+import os
 import queue
 import threading
 import tkinter as tk
@@ -5,7 +7,9 @@ import tkinter as tk
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
-from tools import get_all_ssids
+from tools import get_all_ssids, mobile_connect
+
+WINDOWS = os.name == 'nt'
 
 # ms before gif update
 LOADING_GIF_FREQUENCY = 30
@@ -18,6 +22,8 @@ class WifiScreen(Page):
     def __init__(self, parent):
         #setup things
         super().__init__(parent)
+
+        self.known_configuarions = json.load(open("wifi_settings.json"))
 
         self.loading_gif_path = get_imagepath("loadingIcon")
         print(self.loading_gif_path)
@@ -35,7 +41,11 @@ class WifiScreen(Page):
         #loading things
         self.load_label = tk.Label(self, image=load_image)
         self.load_label.image = load_image
-        self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=28)
+
+        if WINDOWS:
+            self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=37)
+        else:
+            self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=28)
 
         #submit button things
         submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green', activeforeground='green')
@@ -106,7 +116,22 @@ class WifiScreen(Page):
         self.ssid_scrollbar.config(command=self.ssid_listbox.yview)
     
     def wifi_connect(self):
-        pass
+        selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
+
+        print(selected_ssid)
+
+        return
+
+        if not selected_ssid in [diction['ssid'] for diction in self.known_configuarions]:
+            # do extra password getting
+            pass
+        else:
+            for diction in self.known_configuarions:
+                if diction['ssid'] == selected_ssid:
+                    psk = diction['psk']
+                    break
+        
+        mobile_connect(selected_ssid, psk)
     
     def wifi_refresh(self):
         self.ssid_listbox.grid_remove()
