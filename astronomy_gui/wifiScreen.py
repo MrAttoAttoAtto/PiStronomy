@@ -148,7 +148,7 @@ class WifiScreen(Page):
 
         CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
 
-        ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put(get_all_ssids()))
+        ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put((get_all_ssids(), get_current_ssid())))
         ssid_list_process.start()
 
         CONTROLLER.after(CHECK_FREQUENCY,
@@ -160,8 +160,10 @@ class WifiScreen(Page):
     
     def update_ssids(self, label):
         try:
-            ssids, self.current_network = self.ssid_queue.get(block=False)
-            print(ssids)
+            result_tuple = self.ssid_queue.get(block=False)
+            print(result_tuple)
+            ssids = result_tuple[0]
+            self.current_network = result_tuple[1] or "NOT CONNECTED"
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]

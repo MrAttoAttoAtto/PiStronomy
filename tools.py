@@ -88,14 +88,11 @@ def get_current_ssid():
         command = ['netsh', 'wlan', 'show', 'interfaces']
         return "NOT CONNECTED"
     else:
-        command = ['iwlist', 'wlan0', 'scan']
+        command = ['iwgetid', '-r']
     
     raw_connection_data = subprocess.check_output(command)
 
-    ssid_onwards = raw_connection_data.split(b'ESSID:"')[1]
-    dirty_ssid = ssid_onwards.split(b'"', 1)[0]
-
-    return from_hex_unicode_rep(dirty_ssid)
+    return from_hex_unicode_rep(raw_connection_data)[:-1]
 
 def mobile_connect(ssid, password):
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
