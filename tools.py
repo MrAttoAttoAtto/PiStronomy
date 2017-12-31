@@ -5,6 +5,8 @@ import subprocess
 import os
 import time
 
+from astropy.coordinates import SkyCoord
+
 if os.name == 'nt':
     WINDOWS = True
 else:
@@ -121,6 +123,9 @@ def mobile_connect(ssid, password):
     return
 
 def delete_prior_connection():
+    if WINDOWS:
+        return
+
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
     str_to_check = "\n#mobile_connect"
 
@@ -141,3 +146,6 @@ def delete_prior_connection():
     
     update_wlan_config = subprocess.Popen(command)
     update_wlan_config.communicate()
+
+def get_constellation(righta, dec):
+    return SkyCoord(righta, dec, unit=("hour", "deg")).get_constellation()

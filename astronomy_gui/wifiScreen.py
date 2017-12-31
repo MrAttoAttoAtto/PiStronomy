@@ -157,7 +157,7 @@ class WifiScreen(Page):
                                                    lambda: self.update_ssids(self.load_label)))
     
     def back(self):
-        CONTROLLER.show_page('AstroScreen')
+        CONTROLLER.show_page('AstroScreen', True)
     
     def update_ssids(self, label):
         try:
