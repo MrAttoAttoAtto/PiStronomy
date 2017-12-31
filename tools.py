@@ -51,7 +51,7 @@ def get_ip():
         s.close()
     return current_ip
 
-def get_all_ssids():
+def get_all_ssids(block=True):
     ssid_list = []
 
     if WINDOWS:
@@ -59,7 +59,12 @@ def get_all_ssids():
     else:
         command = ["sudo", "iw", "wlan0", "scan"]
 
-    raw_network_data = subprocess.check_output(command)
+    while block:
+        try:
+            raw_network_data = subprocess.check_output(command)
+            break
+        except subprocess.CalledProcessError:
+            time.sleep(0.5)
 
     if not WINDOWS:
         ssid_split = raw_network_data.split(b"SSID: ")
@@ -83,14 +88,19 @@ def get_all_ssids():
     
     return ssid_list
 
-def get_current_ssid():
+def get_current_ssid(block=True):
     if WINDOWS:
         command = ['netsh', 'wlan', 'show', 'interfaces']
         return "NOT CONNECTED"
     else:
         command = ['iwgetid', '-r']
     
-    raw_connection_data = subprocess.check_output(command)
+    while block:
+        try:
+            raw_connection_data = subprocess.check_output(command)
+            break
+        except subprocess.CalledProcessError:
+            time.sleep(0.5)
 
     return from_hex_unicode_rep(raw_connection_data)[:-1]
 
