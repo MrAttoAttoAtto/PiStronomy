@@ -76,6 +76,7 @@ class WifiScreen(Page):
         if not label.winfo_ismapped():
             return
 
+        print("go!")
         try:
             loading_image = tk.PhotoImage(file=self.loading_gif_path,
                                           format="gif -index {}".format(index))
@@ -96,8 +97,10 @@ class WifiScreen(Page):
 
     def display_ssids(self, label):
         try:
-            ssids, self.current_network = self.ssid_queue.get(block=False)
-            print(ssids)
+            result_tuple = self.ssid_queue.get(block=False)
+            print(result_tuple)
+            ssids = result_tuple[0]
+            self.current_network = result_tuple[1] or "NOT CONNECTED"
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
@@ -124,6 +127,7 @@ class WifiScreen(Page):
             # error! You can't connect to the network you're already connected to!
             print("You can't connect to the same network you're connected to!")
             # TODO: add error box
+            return
 
         if not selected_ssid in [diction['ssid'] for diction in self.known_configuarions]:
             # do extra password getting

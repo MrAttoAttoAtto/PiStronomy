@@ -86,6 +86,7 @@ def get_all_ssids():
 def get_current_ssid():
     if WINDOWS:
         command = ['netsh', 'wlan', 'show', 'interfaces']
+        return "NOT CONNECTED"
     else:
         command = ['iwlist', 'wlan0', 'scan']
     
