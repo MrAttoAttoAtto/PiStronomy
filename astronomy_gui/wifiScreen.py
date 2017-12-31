@@ -35,7 +35,7 @@ class WifiScreen(Page):
         #loading things
         self.load_label = tk.Label(self, image=load_image)
         self.load_label.image = load_image
-        self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=37)
+        self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=28)
 
         #submit button things
         submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green', activeforeground='green')
