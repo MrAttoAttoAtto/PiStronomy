@@ -83,6 +83,19 @@ def get_all_ssids():
     
     return ssid_list
 
+def get_current_ssid():
+    if WINDOWS:
+        command = ['netsh', 'wlan', 'show', 'interfaces']
+    else:
+        command = ['iwlist', 'wlan0', 'scan']
+    
+    raw_connection_data = subprocess.check_output(command)
+
+    ssid_onwards = raw_connection_data.split(b'ESSID:"')[1]
+    dirty_ssid = ssid_onwards.split('"', 1)[0]
+
+    return from_hex_unicode_rep(dirty_ssid)
+
 def mobile_connect(ssid, password):
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
     str_to_write = '\n#mobile_connect\nnetwork={\n\tssid="%s"\n\tpsk="%s"\n\tpriority=2\n}' % (ssid, password)

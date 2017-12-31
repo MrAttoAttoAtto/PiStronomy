@@ -7,7 +7,7 @@ import tkinter as tk
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
-from tools import get_all_ssids, mobile_connect
+from tools import get_all_ssids, mobile_connect, get_current_ssid
 
 WINDOWS = os.name == 'nt'
 
@@ -64,7 +64,7 @@ class WifiScreen(Page):
 
         self.ssid_queue = queue.Queue(1)
 
-        ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put(get_all_ssids()))
+        ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put((get_all_ssids(), get_current_ssid())))
         ssid_list_process.start()
 
         CONTROLLER.after(CHECK_FREQUENCY,
@@ -96,7 +96,7 @@ class WifiScreen(Page):
 
     def display_ssids(self, label):
         try:
-            ssids = self.ssid_queue.get(block=False)
+            ssids, self.current_network = self.ssid_queue.get(block=False)
             print(ssids)
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
@@ -110,6 +110,8 @@ class WifiScreen(Page):
         self.ssid_listbox = tk.Listbox(self, yscrollcommand=self.ssid_scrollbar.set, font=("Helvetica", 20))
 
         for ssid in ssids:
+            if ssid == self.current_network:
+                ssid += " - Connected"
             self.ssid_listbox.insert(tk.END, ssid)
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
 
@@ -118,9 +120,10 @@ class WifiScreen(Page):
     def wifi_connect(self):
         selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
 
-        print(selected_ssid)
-
-        return
+        if selected_ssid[:-12] == self.current_network:
+            # error! You can't connect to the network you're already connected to!
+            print("You can't connect to the same network you're connected to!")
+            # TODO: add error box
 
         if not selected_ssid in [diction['ssid'] for diction in self.known_configuarions]:
             # do extra password getting
@@ -153,7 +156,7 @@ class WifiScreen(Page):
     
     def update_ssids(self, label):
         try:
-            ssids = self.ssid_queue.get(block=False)
+            ssids, self.current_network = self.ssid_queue.get(block=False)
             print(ssids)
         except queue.Empty:
             print("ERROR GETTING AVAILABLE NETWORKS")
@@ -164,6 +167,8 @@ class WifiScreen(Page):
         self.ssid_listbox.delete(0, tk.END)
 
         for ssid in ssids:
+            if ssid == self.current_network:
+                ssid += " - Connected"
             self.ssid_listbox.insert(tk.END, ssid)
 
         self.ssid_scrollbar.grid()
