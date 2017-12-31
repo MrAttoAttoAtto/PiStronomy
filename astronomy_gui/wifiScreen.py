@@ -60,7 +60,7 @@ class WifiScreen(Page):
         refresh_button = tk.Button(self, text="Refresh", command=self.wifi_refresh, font=("Helvetica", 20), fg='cyan', activeforeground='cyan')
         refresh_button.grid(row=4, column=3, pady=16)
 
-        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
+        CONTROLLER.after(LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, True))
 
         self.ssid_queue = queue.Queue(1)
 
@@ -71,9 +71,9 @@ class WifiScreen(Page):
                          lambda: self.check_thread(ssid_list_process,
                                                    lambda: self.display_ssids(self.load_label)))
 
-    def update_loading_gif(self, index, label):
+    def update_loading_gif(self, index, label, ignore_placement=False):
         ''' update gif things '''
-        if not label.winfo_ismapped():
+        if not label.winfo_ismapped() and not ignore_placement:
             return
 
         print("go!")
