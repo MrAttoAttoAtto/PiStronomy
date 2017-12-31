@@ -3,3 +3,4 @@ Useful websites
 
 Useful info
 - Resolution is 800x480
+- Right Ascension width is 5 mins + 3 seconds

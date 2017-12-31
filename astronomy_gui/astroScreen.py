@@ -32,18 +32,18 @@ class AstroScreen(Page):
 
         self.load_label.pack()
 
-        submit_button = tk.Button(self, text="Go To Wifi", command=lambda: CONTROLLER.show_page('WifiScreen'), font=("Helvetica", 20), fg='green', activeforeground='green')
-        submit_button.pack()
+        wifi_button = tk.Button(self, text="Go To Wifi", command=lambda: CONTROLLER.show_page('WifiScreen'), font=("Helvetica", 20), fg='green', activeforeground='green')
+        wifi_button.pack()
 
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         self.image_queue = queue.Queue(1)
 
-        ssid_list_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(ra=from_hour_rep(3, 47, 24), de=from_deg_rep(24, 7, 0))))
-        ssid_list_process.start()
+        image_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(ra=from_hour_rep(3, 47, 24), de=from_deg_rep(24, 7, 0))))
+        image_process.start()
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
-                         lambda: self.check_thread(ssid_list_process,
+                         lambda: self.check_thread(image_process,
                                                    self.display_image))
     
     def display_image(self):

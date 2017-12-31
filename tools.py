@@ -11,11 +11,11 @@ else:
     WINDOWS = False
 
 def from_hour_rep(hours, mins, secs):
-    answer = hours % 24
+    answer = hours
 
-    answer += mins/60 % 1
+    answer += mins/60
 
-    answer += secs/3600 % 1/60
+    answer += secs/3600
 
     return answer
 
