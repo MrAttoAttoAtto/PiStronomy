@@ -63,6 +63,8 @@ class WifiScreen(Page):
 
     def update_loading_gif(self, index, label):
         ''' update gif things '''
+        if not label.winfo_ismapped():
+            return
 
         try:
             loading_image = tk.PhotoImage(file=self.loading_gif_path,
@@ -103,7 +105,7 @@ class WifiScreen(Page):
 
         self.ssid_scrollbar.config(command=self.ssid_listbox.yview)
 
-        print(self.all_children(CONTROLLER))
+        print(threading.active_count())
     
     def wifi_connect(self):
         pass
@@ -145,7 +147,7 @@ class WifiScreen(Page):
 
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
 
-        print(self.all_children(CONTROLLER))
+        print(threading.active_count())
 
     @staticmethod
     def all_children(wid):
