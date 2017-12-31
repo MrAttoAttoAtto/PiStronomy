@@ -9,7 +9,7 @@ from astropy.coordinates import EarthLocation, get_body, solar_system_ephemeris
 PLANET_COORDINATES = Queue(1)
 PLANET_COORDINATES.put([])
 
-MAPPING_DICT = {
+MAPPING_DICT = [
     ['Mercury', 0],
     ['Venus', 1],
     ['Mars', 2],
@@ -20,7 +20,7 @@ MAPPING_DICT = {
     ['Pluto', 7],
     ['Moon', 8],
     ['Sun', 9]
-}
+]
 MAPPING_DICT = OrderedDict(MAPPING_DICT)
 
 def get_planet_coords():
