@@ -131,6 +131,9 @@ def delete_prior_connection():
 
     print(prior_string)
 
+    if prior_string == wpa_contents:
+        return
+
     with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'w') as fil:
         fil.write(prior_string)
 
@@ -138,5 +141,3 @@ def delete_prior_connection():
     
     update_wlan_config = subprocess.Popen(command)
     update_wlan_config.communicate()
-
-    return
