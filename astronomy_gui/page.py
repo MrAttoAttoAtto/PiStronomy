@@ -12,6 +12,9 @@ class Page(tk.Frame):
     # ms before thread re-check
     CHECK_FREQUENCY = 200
 
+    # seconds before being able to kill loading gifs
+    LOADING_GIF_KILL = 1
+
     def __init__(self, parent):
         super().__init__(master=parent)
 
@@ -23,7 +26,7 @@ class Page(tk.Frame):
     
     def update_loading_gif(self, index, label, start_time):
         ''' update gif things '''
-        if not label.winfo_ismapped() and time.time() - start_time > 3:
+        if not label.winfo_ismapped() and time.time() - start_time > self.LOADING_GIF_KILL:
             return
 
         try:

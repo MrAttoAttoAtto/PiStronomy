@@ -35,11 +35,13 @@ class AstroScreen(Page):
         wifi_button = tk.Button(self, text="Go To Wifi", command=lambda: CONTROLLER.show_page('WifiScreen'), font=("Helvetica", 20), fg='green', activeforeground='green')
         wifi_button.pack()
 
+        #self.bind("")
+
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         self.image_queue = queue.Queue(1)
 
-        image_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(ra=from_hour_rep(3, 47, 24), de=from_deg_rep(24, 7, 0))))
+        image_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(from_hour_rep(3, 47, 24), from_deg_rep(24, 7, 0))))
         image_process.start()
 
         CONTROLLER.after(self.CHECK_FREQUENCY,

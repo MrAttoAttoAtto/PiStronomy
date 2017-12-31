@@ -131,7 +131,7 @@ class WifiScreen(Page):
 
         self.load_label.grid()
 
-        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         change_connection_process = threading.Thread(None, lambda: (delete_prior_connection(), mobile_connect(selected_ssid, psk),
                                                                     self.ssid_queue.put((get_all_ssids(), get_current_ssid()))))
@@ -147,7 +147,7 @@ class WifiScreen(Page):
 
         self.load_label.grid()
 
-        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label))
+        CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         ssid_list_process = threading.Thread(None, lambda: self.ssid_queue.put((get_all_ssids(), get_current_ssid())))
         ssid_list_process.start()
@@ -157,7 +157,7 @@ class WifiScreen(Page):
                                                    lambda: self.update_ssids(self.load_label)))
     
     def back(self):
-        CONTROLLER.show_page('MainMenu')
+        CONTROLLER.show_page('AstroScreen')
     
     def update_ssids(self, label):
         try:
