@@ -46,7 +46,7 @@ class AstroScreen(Page):
         wifi_button = tk.Button(self, text="Go To Wifi", command=self.wifi_button_func, font=("Helvetica", 20), fg='green', activeforeground='green')
         wifi_button.pack()
 
-        self.planet_menu = tk.Menu(self, tearoff=0)
+        self.planet_menu = tk.Menu(self, tearoff=0, font=("Helvetica", 20))
         for planet in MAPPING_DICT:
             self.planet_menu.add_command(label=planet, command=lambda planet=planet: self.show_planet(MAPPING_DICT[planet]))
 
