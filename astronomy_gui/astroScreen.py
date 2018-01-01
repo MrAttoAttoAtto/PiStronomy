@@ -10,6 +10,7 @@ from astropy.coordinates import EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
 from astropy.time import Time
 from PIL import ImageTk
+from PIL.Image import ANTIALIAS
 
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
@@ -22,6 +23,9 @@ from tools import (coordinates_from_observer, from_deg_rep, from_hour_rep,
 
 # the altitude at which it is considered impossible to see a star (i.e. too close to the horizon)
 UNSEEABLE_START_ALTITUDE = 20
+
+# the resolution (x and y) that each image is resized to (to fit)
+IMAGE_RESOLUTION = (150, 150)
 
 # astronomy main screen class
 class AstroScreen(Page):
@@ -227,6 +231,8 @@ class AstroScreen(Page):
         self.image_label.pack_forget()
 
         image = self.image_queue.get()
+
+        image = image.resize(IMAGE_RESOLUTION, ANTIALIAS)
 
         tk_image = ImageTk.PhotoImage(image)
 
