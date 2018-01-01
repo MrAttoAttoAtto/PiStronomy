@@ -17,7 +17,7 @@ class Page(tk.Frame):
     LOADING_GIF_KILL = 1
 
     # size of the menu fonts
-    MENU_FONT_SIZE = 15
+    MENU_FONT_SIZE = 20
 
     def __init__(self, parent):
         super().__init__(master=parent)
