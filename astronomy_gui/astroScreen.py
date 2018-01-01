@@ -71,7 +71,7 @@ class AstroScreen(Page):
 
         self._setup_menus()
 
-        self.do_bindings()
+        self._do_bindings()
 
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
@@ -262,12 +262,18 @@ class AstroScreen(Page):
         CONTROLLER.unbind("<Down>")
 
         CONTROLLER.show_page('WifiScreen')
+        CONTROLLER.config(menu=tk.Menu(self))
     
-    def do_bindings(self):
+    def _do_bindings(self):
         CONTROLLER.bind("<Left>", lambda e: self.generate_image(128, 0))
         CONTROLLER.bind("<Right>", lambda e: self.generate_image(-128, 0))
         CONTROLLER.bind("<Up>", lambda e: self.generate_image(0, 128))
         CONTROLLER.bind("<Down>", lambda e: self.generate_image(0, -128))
+
+        CONTROLLER.bind("<Control-a>", lambda e: self.generate_image(128, 0))
+        CONTROLLER.bind("<Control-d>", lambda e: self.generate_image(-128, 0))
+        CONTROLLER.bind("<Control-w>", lambda e: self.generate_image(0, 128))
+        CONTROLLER.bind("<Control-s>", lambda e: self.generate_image(0, -128))
 
     def show_planet(self, index):
         try:
@@ -386,4 +392,5 @@ Within {} (Constellation)
 
     def render(self, referral=False):
         if referral:
-            self.do_bindings()
+            self._do_bindings()
+            CONTROLLER.config(menu=self.menubar)
