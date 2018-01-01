@@ -29,7 +29,7 @@ class AstroScreen(Page):
         self.base_de = 0
         self.shiftx = 0
         self.shifty = 0
-        self.magnification = 0
+        self.magnification = 0.0
 
         self.location = 'Greenwich'
         self.lat, self.long = get_earth_location_coordinates(self.location.lower())
@@ -116,7 +116,7 @@ class AstroScreen(Page):
         CONTROLLER.config(menu=self.menubar)
     
     def set_magnification(self):
-        new_mag = simpledialog.askfloat("Enter new magnification", "Please enter a new magnification (0 is the default, -1 is smaller and 1 is bigger.\nIt is currently {}".format(self.magnification), parent=self)
+        new_mag = simpledialog.askfloat("Enter new magnification", "Please enter a new magnification (0 is the default, -1 is smaller and 1 is bigger.)\nIt is currently {}".format(self.magnification), parent=self)
 
         self.generate_image(0, 0, None, None, new_mag)
     
@@ -140,19 +140,19 @@ class AstroScreen(Page):
 
         if len(split_string) == 2:
             try:
-                righta = int(split_string[0])
-                dec = int(split_string[1])
+                righta = float(split_string[0])
+                dec = float(split_string[1])
             except ValueError:
                 self.display_error("That was not a valid input!", "Invalid input")
                 return
         elif len(split_string) == 6:
             try:
-                hours = int(split_string[0])
-                mins = int(split_string[1])
-                secs = int(split_string[2])
-                degs = int(split_string[3])
-                arcmins = int(split_string[4])
-                arcsecs = int(split_string[5])
+                hours = float(split_string[0])
+                mins = float(split_string[1])
+                secs = float(split_string[2])
+                degs = float(split_string[3])
+                arcmins = float(split_string[4])
+                arcsecs = float(split_string[5])
             except ValueError:
                 self.display_error("That was not a valid input!", "Invalid input")
                 return
@@ -227,7 +227,7 @@ class AstroScreen(Page):
         try:
             planet_ra, planet_de = self.all_coords[index]
         except IndexError:
-            self.display_error("The planet data has not been generated yet, please wait a few seconds then try again", "Data not available")
+            self.display_error("The planet data has not been generated yet, please wait for the prompt then try again", "Data not available")
             return
 
         self.generate_image(0, 0, planet_ra, planet_de)
@@ -241,7 +241,7 @@ class AstroScreen(Page):
         try:
             planet_ra, planet_de = self.all_coords[index]
         except IndexError:
-            self.display_error("The planet data has not been generated yet, please wait a few seconds then try again", "Data not available")
+            self.display_error("The planet data has not been generated yet, please wait for the prompt then try again", "Data not available")
             return
 
         if not self.time_manual:
