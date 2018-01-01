@@ -24,20 +24,25 @@ class Controller(tk.Tk):
 
         self.focus_set()
 
+        self.bind("<Escape>", lambda e: self.destroy())
+
         # the container is where we'll stack a bunch of frames
         # on top of each other, then the one we want visible
         # will be raised above the others
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
-        self.bind("<Escape>", lambda e: self.destroy())
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
+
+        self.current_page = ""
 
         self.pages = {}
 
     def show_page(self, name, data=False):
         self.pages[name].render(data)
         self.pages[name].tkraise()
+
+        self.current_page = name
 
     def add_page(self, page):
         self.pages[page.__name__] = page(parent=self.container)

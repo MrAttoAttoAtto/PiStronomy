@@ -110,7 +110,7 @@ class WifiScreen(Page):
 
         if selected_ssid[:-12] == self.current_network:
             # error! You can't connect to the network you're already connected to!
-            print("You can't connect to the same network you're connected to!")
+            self.display_error("You can't connect to the same network you're connected to!", "Connection error")
             # TODO: add error box
             return
         
@@ -118,7 +118,7 @@ class WifiScreen(Page):
             selected_ssid = selected_ssid[:-8]
 
         if not selected_ssid in self.known_ssids:
-            # do extra password getting
+            #TODO do extra password getting
             pass
         else:
             for diction in self.known_configurations:

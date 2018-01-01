@@ -3,6 +3,7 @@ import tkinter as tk
 
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
+from tools import get_current_ssid, get_ip
 
 
 class Page(tk.Frame):
@@ -46,3 +47,29 @@ class Page(tk.Frame):
             CONTROLLER.after(self.CHECK_FREQUENCY, lambda: self.check_thread(thread, callback))
         else:
             callback()
+    
+    def display_current_ip(self):
+        curr_ip = get_ip()
+
+        info_string = "The current internal IP address is \"{}\""
+
+        self.display_info(info_string.format(curr_ip), "Current IP")
+    
+    def display_current_ssid(self):
+        curr_ssid = get_current_ssid()
+        
+        if curr_ssid != "NOT CONNECTED":
+            info_string = "This device is currently connected to \"{}\""
+            self.display_info(info_string.format(curr_ssid), "Current SSID")
+        else:
+            info_string = "This device is currently not connected to any network"
+            self.display_warning(info_string, "Error: Not connected")
+
+    def display_info(self, info, title):
+        tk.messagebox.showinfo(title, message=info)
+    
+    def display_warning(self, info, title):
+        tk.messagebox.showwarning(title, message=info)
+    
+    def display_error(self, info, title):
+        tk.messagebox.showerror(title, message=info)

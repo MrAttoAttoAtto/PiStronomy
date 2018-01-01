@@ -5,7 +5,8 @@ import subprocess
 import os
 import time
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, AltAz, EarthLocation
+from astropy.time import Time
 
 if os.name == 'nt':
     WINDOWS = True
@@ -149,3 +150,22 @@ def delete_prior_connection():
 
 def get_constellation(righta, dec):
     return SkyCoord(righta, dec, unit=("hour", "deg")).get_constellation()
+
+def coordinates_from_observer(righta, dec, location, obstime):
+    real_time = Time(obstime)
+    real_location = EarthLocation.of_site(location)
+
+    real_coordinates = SkyCoord(righta, dec, unit=("hour", "deg"))
+
+    alt_az = real_coordinates.transform_to(AltAz(obstime=real_time, location=real_location))
+
+    return alt_az.az.deg, alt_az.alt.deg
+
+def get_earth_location_coordinates(location):
+    real_location = EarthLocation.of_site(location)
+
+    long_lat_repr = real_location.to_geodetic()
+    longi = long_lat_repr.lon.deg
+    lat = long_lat_repr.lat.deg
+
+    return lat, longi
