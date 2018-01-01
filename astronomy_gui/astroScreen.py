@@ -317,7 +317,7 @@ Within {} (Constellation)
         self.display_info(info_string, "Planet info")
     
     def show_object(self):
-        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "M1", "Pleiades", "Andromeda", "Ursa Minor", "Virgo")', parent=self)
+        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: , "Polaris", M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
 
         if obj is None:
             return
@@ -331,7 +331,7 @@ Within {} (Constellation)
         self.generate_image(0, 0, righta, dec)
     
     def show_object_info(self):
-        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "M1", "Pleiades", "Andromeda", "Ursa Minor", "Virgo")', parent=self)
+        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "Polaris", M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
 
         if obj is None:
             return
