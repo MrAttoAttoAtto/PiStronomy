@@ -248,11 +248,11 @@ Right Ascension — {} hours
 Declination — {} degrees
 Azimuth — {} degrees
 Altitude — {} degrees
-Visible from {}? (latitude {}) — {}
+Visible from {}? (latitude {} degrees) — {}
 Within {} (Constellation)
 (Information generated for {} at location {})'''.format(next((name for name, map_index in MAPPING_DICT.items() if map_index == index)),
                                                                 round(planet_ra, 2), round(planet_de, 2), round(planet_az, 2), round(planet_alt, 2),
-                                                                self.location, rount(self.lat, 2), visible, get_constellation(planet_ra, planet_de),
+                                                                self.location, round(self.lat, 2), visible, get_constellation(planet_ra, planet_de),
                                                                 self.time, self.location)
 
         self.display_info(info_string, "Planet info")
