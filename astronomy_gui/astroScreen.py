@@ -17,9 +17,10 @@ from tools import from_deg_rep, from_hour_rep, get_constellation, coordinates_fr
 
 from astropy.coordinates.errors import UnknownSiteException
 
+# the altitude at which it is considered impossible to see a star (i.e. too close to the horizon)
 UNSEEABLE_START_ALTITUDE = 20
 
-#astronomy main screen class
+# astronomy main screen class
 class AstroScreen(Page):
     def __init__(self, parent):
         #setup things
@@ -82,13 +83,13 @@ class AstroScreen(Page):
                                                    self.display_image))
     
     def _setup_menus(self):
-        self.menubar = tk.Menu(self, font=("Helvetica", 10))
+        self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE))
 
         # setting up the planet submenu
-        planet_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", 10))
+        planet_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
 
-        planet_goto_menu = tk.Menu(planet_menu, tearoff=0, font=("Helvetica", 10))
-        planet_info_menu = tk.Menu(planet_menu, tearoff=0, font=("Helvetica", 10))
+        planet_goto_menu = tk.Menu(planet_menu, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        planet_info_menu = tk.Menu(planet_menu, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
         for planet in MAPPING_DICT:
             planet_goto_menu.add_command(label=planet, command=lambda planet=planet: self.show_planet(MAPPING_DICT[planet]))
             planet_info_menu.add_command(label=planet, command=lambda planet=planet: self.show_planet_info(MAPPING_DICT[planet]))
@@ -99,13 +100,13 @@ class AstroScreen(Page):
         planet_menu.add_command(label="Refresh planet positions", command=self.refresh_planets)
 
         # setting up the wifi submenu
-        wifi_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", 10))
+        wifi_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
         wifi_menu.add_command(label='Open Wifi Screen', command=self.wifi_button_func)
         wifi_menu.add_command(label="Check IP", command=self.display_current_ip)
         wifi_menu.add_command(label="Check SSID", command=self.display_current_ssid)
 
         # setting up the settings submenu
-        settings_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", 10))
+        settings_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
         settings_menu.add_command(label="Change magnification", command=self.set_magnification)
         settings_menu.add_command(label="Change coordinates", command=self.set_coordinates)
 
