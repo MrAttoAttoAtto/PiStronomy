@@ -57,7 +57,7 @@ def get_planet_coords():
 
     return coordinates
 
-def constant_planet_update(fake=False):
+def constant_planet_update(fake=False, skip=False):
     new_coords = get_planet_coords()
 
     try:
@@ -67,16 +67,12 @@ def constant_planet_update(fake=False):
         PLANET_COORDINATES.put(new_coords)
 
     if not fake:
-        time.sleep(10)
+        if not skip:
+            time.sleep(10)
 
         planet_update_thread = threading.Thread(None, constant_planet_update)
         planet_update_thread.setDaemon(True)
         planet_update_thread.start()
-
-def start_planet_update():
-    planet_update_thread = threading.Thread(None, constant_planet_update)
-    planet_update_thread.setDaemon(True)
-    planet_update_thread.start()
 
 if __name__ == '__main__':
     print(get_planet_coords())

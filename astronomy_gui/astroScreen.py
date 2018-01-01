@@ -12,7 +12,7 @@ from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
 from get_picture import get_sky_picture
-from planets import MAPPING_DICT, PLANET_COORDINATES, constant_planet_update
+from planets import MAPPING_DICT, PLANET_COORDINATES, constant_planet_update, constant_planet_update
 from tools import from_deg_rep, from_hour_rep, get_constellation, coordinates_from_observer, get_earth_location_coordinates
 
 from astropy.coordinates.errors import UnknownSiteException
@@ -41,6 +41,14 @@ class AstroScreen(Page):
         self.width = 800
         self.height = 480
         self.grid()
+
+        planet_update_process = threading.Thread(None, lambda: constant_planet_update(skip=True))
+        planet_update_process.setDaemon(True)
+        planet_update_process.start()
+
+        CONTROLLER.after(self.CHECK_FREQUENCY,
+                         lambda: self.check_thread(planet_update_process,
+                                                   lambda: self.display_info("Initial planet locations have been calculated", "Planet locations calculated")))
 
         #instruction label
         #instr_label = tk.Label(self, text="Please select a network to connect to:", font=("Helvetica", 34))
