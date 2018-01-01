@@ -169,3 +169,8 @@ def get_earth_location_coordinates(location):
     lat = long_lat_repr.lat.deg
 
     return lat, longi
+
+def get_object_coordinates(obj):
+    coordinates = SkyCoord.from_name(obj)
+
+    return coordinates.ra.hour, coordinates.dec.deg

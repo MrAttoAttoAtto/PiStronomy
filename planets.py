@@ -4,7 +4,7 @@ from queue import Queue, Full
 from collections import OrderedDict
 
 from astropy.time import Time
-from astropy.coordinates import EarthLocation, get_body, solar_system_ephemeris
+from astropy.coordinates import EarthLocation, get_body, solar_system_ephemeris, get_sun, get_moon
 
 PLANET_COORDINATES = Queue(1)
 PLANET_COORDINATES.put([])
@@ -50,8 +50,8 @@ def get_planet_coords():
         sky_coord_list.append(get_body('uranus', real_time, real_location))
         sky_coord_list.append(get_body('neptune', real_time, real_location))
         sky_coord_list.append(get_body('pluto', real_time, real_location))
-        sky_coord_list.append(get_body('sun', real_time, real_location))
-        sky_coord_list.append(get_body('moon', real_time, real_location))
+        sky_coord_list.append(get_moon(real_time, real_location))
+        sky_coord_list.append(get_sun(real_time))
 
     coordinates = [(sky_coord.ra.hour, sky_coord.dec.degree) for sky_coord in sky_coord_list]
 
