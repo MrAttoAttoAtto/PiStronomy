@@ -182,7 +182,7 @@ def get_magnitude(obj):
         "request":"doQuery",
         "lang":"adql",
         "format":"text",
-        "query":"SELECT V from allfluxes JOIN ident USING(oidref) WHERE id = '{}';".format(obj)
+        "query":"SELECT V from allfluxes JOIN ident USING(oidref) WHERE id = '{}';".format(obj.replace("'", "''"))
     }
 
     http_response = requests.get("http://simbad.u-strasbg.fr/simbad/sim-tap/sync", params=param_dict, timeout=3)
