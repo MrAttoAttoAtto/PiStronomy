@@ -1,12 +1,13 @@
 '''Tools for converting between units (and possibly other things)'''
-import urllib.parse
+import os
+import queue
+import requests
 import socket
 import subprocess
-import os
 import time
-import queue
+import urllib.parse
 
-from astropy.coordinates import SkyCoord, AltAz, EarthLocation
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord
 from astropy.time import Time
 
 if os.name == 'nt':
@@ -152,7 +153,7 @@ def delete_prior_connection():
 def get_constellation(righta, dec):
     return SkyCoord(righta, dec, unit=("hour", "deg")).get_constellation()
 
-def coordinates_from_observer(righta, dec, location, obstime):
+def get_coordinates_from_observer(righta, dec, location, obstime):
     real_time = Time(obstime)
     real_location = EarthLocation.of_site(location)
 
@@ -175,6 +176,25 @@ def get_object_coordinates(obj):
     coordinates = SkyCoord.from_name(obj)
 
     return coordinates.ra.hour, coordinates.dec.deg
+
+def get_magnitude(obj):
+    param_dict = {
+        "request":"doQuery",
+        "lang":"adql",
+        "format":"text",
+        "query":"SELECT V from allfluxes JOIN ident USING(oidref) WHERE id = '{}';".format(obj)
+    }
+
+    http_response = requests.get("http://simbad.u-strasbg.fr/simbad/sim-tap/sync", params=param_dict, timeout=3)
+
+    print(http_response.content)
+
+    mag = http_response.content.split(b"\n")[2].decode()
+
+    if mag == ' ' or mag == '':
+        return None
+
+    return float(mag)
 
 def safe_put(q, item):
         try:

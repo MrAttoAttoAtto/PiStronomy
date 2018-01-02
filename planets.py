@@ -1,6 +1,6 @@
 import time
 import threading
-from queue import Queue, Full
+from queue import Queue, Full, Empty
 from collections import OrderedDict
 
 from astropy.time import Time
@@ -23,11 +23,13 @@ MAPPING_DICT = [
 ]
 MAPPING_DICT = OrderedDict(MAPPING_DICT)
 
-def get_planet_coords():
-    formatted_time = time.strftime("%Y-%m-%d %H:%M")
-    real_time = Time(formatted_time)
+def get_planet_coords(obstime, loc, manual=False):
+    if not manual:
+        real_time = Time(time.strftime("%Y-%m-%d %H:%M:%S"))
+    else:
+        real_time = Time(obstime)
 
-    real_location = EarthLocation.of_site('greenwich')
+    real_location = EarthLocation.of_site(loc)
 
     '''
     0 - Merc
@@ -57,8 +59,8 @@ def get_planet_coords():
 
     return coordinates
 
-def constant_planet_update(fake=False, skip=False):
-    new_coords = get_planet_coords()
+def constant_planet_update(fake=False, skip=False, screen=None):
+    new_coords = get_planet_coords(screen.time, screen.location, screen.time_manual)
 
     try:
         PLANET_COORDINATES.put(new_coords, block=False)
@@ -70,9 +72,9 @@ def constant_planet_update(fake=False, skip=False):
         if not skip:
             time.sleep(10)
 
-        planet_update_thread = threading.Thread(None, constant_planet_update)
+        planet_update_thread = threading.Thread(None, lambda: constant_planet_update(screen=screen))
         planet_update_thread.setDaemon(True)
         planet_update_thread.start()
 
 if __name__ == '__main__':
-    print(get_planet_coords())
+    print(get_planet_coords('greenwich', time.strftime("%Y-%m-%d %H:%M:%S")))

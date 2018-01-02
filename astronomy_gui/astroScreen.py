@@ -18,8 +18,9 @@ from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
 from get_picture import get_sky_picture
 from planets import MAPPING_DICT, PLANET_COORDINATES, constant_planet_update
-from tools import (coordinates_from_observer, from_deg_rep, from_hour_rep,
-                   get_constellation, get_earth_location_coordinates,
+from tools import (from_deg_rep, from_hour_rep, get_constellation,
+                   get_coordinates_from_observer,
+                   get_earth_location_coordinates, get_magnitude,
                    get_object_coordinates, safe_put)
 
 # True is the system is windows, False otherwise
@@ -65,7 +66,7 @@ class AstroScreen(Page):
         self.height = 480
         self.grid()
 
-        planet_update_process = threading.Thread(None, lambda: constant_planet_update(skip=True))
+        planet_update_process = threading.Thread(None, lambda: constant_planet_update(skip=True, screen=self))
         planet_update_process.setDaemon(True)
         planet_update_process.start()
 
@@ -221,7 +222,7 @@ class AstroScreen(Page):
         self.display_info(info_string, "Save and Save as")
     
     def refresh_planets(self):
-        planet_process = threading.Thread(None, lambda: constant_planet_update(True))
+        planet_process = threading.Thread(None, lambda: constant_planet_update(True, screen=self))
         planet_process.start()
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
@@ -408,12 +409,14 @@ class AstroScreen(Page):
             self.display_error("The planet data has not been generated yet, please wait for the prompt then try again", "Data not available")
             return
 
+        name = next((name for name, map_index in MAPPING_DICT.items() if map_index == index))
+
         if not self.time_manual:
             self.time = time.strftime("%Y-%m-%d %H:%M:%S")
 
-        planet_az, planet_alt = coordinates_from_observer(planet_ra, planet_de, self.location, self.time)
+        planet_az, planet_alt = get_coordinates_from_observer(planet_ra, planet_de, self.location, self.time)
 
-        visible = "Yes" if planet_alt > UNSEEABLE_START_ALTITUDE else "No"
+        visible = self.calculate_visibility(planet_az, planet_alt, self.time, self.location, "N/A", name=="Sun", name=="Moon")
 
         info_string = '''Name — {}
 Right Ascension — {} hours
@@ -422,15 +425,14 @@ Azimuth — {} degrees
 Altitude — {} degrees
 Visible from {}? (latitude {} degrees) — {}
 Within {} (Constellation)
-(Information generated for {} at location {})'''.format(next((name for name, map_index in MAPPING_DICT.items() if map_index == index)),
-                                                        round(planet_ra, 2), round(planet_de, 2), round(planet_az, 2), round(planet_alt, 2),
+(Information generated for {} at location {})'''.format(name, round(planet_ra, 2), round(planet_de, 2), round(planet_az, 2), round(planet_alt, 2),
                                                         self.location, round(self.lat, 2), visible, get_constellation(planet_ra, planet_de),
                                                         self.time, self.location)
 
         self.display_info(info_string, "Planet info")
     
     def show_object(self):
-        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: , "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
+        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: , "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor", "Orion")', parent=self)
 
         if obj is None:
             return
@@ -444,7 +446,7 @@ Within {} (Constellation)
         self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
     
     def show_object_info(self):
-        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
+        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor", "Orion")', parent=self)
 
         if obj is None:
             return
@@ -458,22 +460,98 @@ Within {} (Constellation)
         if not self.time_manual:
             self.time = time.strftime("%Y-%m-%d %H:%M:%S")
 
-        azim, alt = coordinates_from_observer(righta, dec, self.location, self.time)
+        azim, alt = get_coordinates_from_observer(righta, dec, self.location, self.time)
 
-        visible = "Yes" if alt > UNSEEABLE_START_ALTITUDE else "No" 
+        mag = get_magnitude(obj)
+
+        if mag is None:
+            mag = "N/A"
+
+        visible = self.calculate_visibility(azim, alt, self.time, self.location, mag)
 
         info_string = '''Name — {}
 Right Ascension — {} hours
 Declination — {} degrees
 Azimuth — {} degrees
 Altitude — {} degrees
+Apparent Magnitude — {}
 Visible from {}? (latitude {} degrees) — {}
 Within {} (Constellation)
 (Information generated for {} at location {})'''.format(obj, round(righta, 2), round(dec, 2), round(azim, 2),
-                                                        round(alt, 2), self.location, round(self.lat, 2), visible,
+                                                        round(alt, 2), mag, self.location, round(self.lat, 2), visible,
                                                         get_constellation(righta, dec), self.time, self.location)
         
         self.display_info(info_string, "Object info")
+    
+    def calculate_visibility(self, azim, alt, obstime, location, mag, sun=False, moon=False):
+        visible_factor = 2
+        impeders = []
+        warnings = []
+
+        try:
+            self.all_coords = PLANET_COORDINATES.get(block=False)
+        except queue.Empty:
+            pass
+        
+        try:
+            moon_ra, moon_dec = self.all_coords[8]
+            sun_ra, sun_dec = self.all_coords[9]
+
+            moon_az, moon_alt = get_coordinates_from_observer(moon_ra, moon_dec, location, obstime)
+            sun_az, sun_alt = get_coordinates_from_observer(sun_ra, sun_dec, location, obstime)
+
+            if not sun:
+                if sun_alt > 10:
+                    if moon:
+                        visible_factor = visible_factor if visible_factor != 2 else 1
+                    else:
+                        visible_factor = 0
+                    
+                    impeders.append("being viewed when the sun is up")
+                elif sun_alt > -5:
+                    if not moon:
+                        visible_factor = visible_factor if visible_factor != 2 else 1
+                        impeders.append("being viewed when the sun is coming up")
+            
+            if not moon and not sun:
+                if abs(moon_az-azim) < 2 or abs(moon_alt-alt) < 2:
+                    visible_factor = 0
+                    impeders.append("very close to the moon")
+                elif abs(moon_az-azim) < 5 or abs(moon_alt-alt) < 5:
+                    visible_factor = visible_factor if visible_factor != 2 else 1
+                    impeders.append("close to the moon")
+        except IndexError:
+            warnings.append("the solar system objects have not yet been computed, so either wait and run this again or take these into account yourself")
+            pass
+
+        
+
+        if alt < 0:
+            visible_factor = 0
+            impeders.append("below the horizon")
+        elif alt < 20:
+            if not sun:
+                visible_factor = visible_factor if visible_factor != 2 else 1
+                impeders.append("very close to the horizon")
+        
+        if mag != "N/A":
+            if mag > 7:
+                visible_factor = visible_factor if visible_factor != 2 else 1
+                impeders.append("low magnitude")
+            elif mag > 10:
+                visible_factor = 0
+                impeders.append("very low magnitude")
+        else:
+            warnings.append("magnitude could not be calculated, so take this into account yourself")
+        
+        if visible_factor == 0:
+            message = "No\nReason(s): {}".format(', '.join(impeders))
+        elif visible_factor == 1:
+            message = "Probably not\nReason(s): {}".format(', '.join(impeders))
+        else:
+            message = "Yes"
+
+        return message
 
     def update_location(self, location):
         try:
@@ -491,7 +569,7 @@ Within {} (Constellation)
         except ValueError:
             self.display_error("That was not a valid input!", "Invalid input")
             return
-
+        
         self.time = obstime
         self.time_manual = True
 
@@ -501,9 +579,9 @@ Within {} (Constellation)
         fil = filedialog.asksaveasfilename(defaultextension='.png', filetypes=[("PNG", ".png"), ("JPEG", ".jpeg"),
                                                                            ("JPEG", ".jpg"), ("GIF", ".gif"),
                                                                            ("BMP", ".bmp")],
-                                       initialdir=SAVE_INITIAL_DIR, initialfile=str(uuid.uuid4()), parent=self, title="Save Image")
+                                       initialdir=SAVE_INITIAL_DIR, initialfile=time.strftime("%Y-%m-%d %Hh %Mm %Ss"), parent=self, title="Save Image")
         
-        if fil is None:
+        if fil == '':
             return
 
         full_im = Image.new('RGB', (768, 768))

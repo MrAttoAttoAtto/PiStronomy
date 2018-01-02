@@ -9,6 +9,7 @@ class Controller(tk.Tk):
     def __init__(self, fullscreen=False, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
+        self.title("PiStronomy")
         self.title_font = tkinter.font.Font(
             family='Helvetica', size=18, weight="bold", slant="italic")
 
