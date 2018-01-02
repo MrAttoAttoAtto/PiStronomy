@@ -25,7 +25,7 @@ from tools import (coordinates_from_observer, from_deg_rep, from_hour_rep,
 UNSEEABLE_START_ALTITUDE = 20
 
 # the resolution (x and y) that each image is resized to (to fit)
-IMAGE_RESOLUTION = (150, 150)
+IMAGE_RESOLUTION = (135, 135)
 
 # astronomy main screen class
 class AstroScreen(Page):
