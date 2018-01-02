@@ -299,8 +299,9 @@ class AstroScreen(Page):
                                    "If you really need to scratch that spamming itch, load the images into the cache (by moving around) and then you can spam to your heart's content " +
                                    "within the images that you just loaded!", "Spamming is bad")
                 return
-
-            self.image_label_list[index].grid_remove()
+            
+            if not all_cached:
+                self.image_label_list[index].grid_remove()
             
             image = image.resize(IMAGE_RESOLUTION, ANTIALIAS)
 
@@ -348,6 +349,13 @@ class AstroScreen(Page):
             image_process.start()
 
             image_processes.append(image_process)
+
+        if not cached == 9:
+            for label in self.image_label_list:
+                label.grid_remove()
+        
+            self.load_label.grid(row=2, column=2)
+            CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(image_processes,
