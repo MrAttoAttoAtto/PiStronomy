@@ -1,12 +1,13 @@
+import os
 import queue
 import threading
 import time
 import tkinter as tk
 import uuid
-from tkinter import messagebox, simpledialog, filedialog
+from tkinter import filedialog, messagebox, simpledialog
 
-from astropy.coordinates.errors import UnknownSiteException
 from astropy.coordinates import EarthLocation
+from astropy.coordinates.errors import UnknownSiteException
 from astropy.coordinates.name_resolve import NameResolveError
 from astropy.time import Time
 from PIL import Image, ImageTk
@@ -20,6 +21,11 @@ from planets import MAPPING_DICT, PLANET_COORDINATES, constant_planet_update
 from tools import (coordinates_from_observer, from_deg_rep, from_hour_rep,
                    get_constellation, get_earth_location_coordinates,
                    get_object_coordinates, safe_put)
+
+# True is the system is windows, False otherwise
+WINDOWS = os.name == 'nt'
+
+SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "~/Pictures"
 
 # the altitude at which it is considered impossible to see a star (i.e. too close to the horizon)
 UNSEEABLE_START_ALTITUDE = 20
@@ -112,7 +118,6 @@ class AstroScreen(Page):
 
         # setting up the file submenu
         file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
-
         file_menu.add_command(label="Save As", command=self.save_as_image)
 
         # setting up the astronomy submenu
@@ -147,6 +152,8 @@ class AstroScreen(Page):
         # setting up the help submenu
         help_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
         help_menu.add_command(label="List of sites", command=self.show_sites)
+        help_menu.add_command(label="Movement slow?", command=self.slow_move)
+        help_menu.add_command(label="Save and Save as", command=self.save_vs_saveas)
 
         self.menubar.add_cascade(label='File', menu=file_menu)
         self.menubar.add_cascade(label='Astronomy', menu=astronomy_menu)
@@ -192,6 +199,19 @@ class AstroScreen(Page):
         location_string = ', '.join(locations)
 
         self.display_info("List of astronomical sites:\n{}".format(location_string), "List of sites")
+    
+    def slow_move(self):
+        info_string = "The movement will be slow for around the first minute the application is open, after that it should operate noticibly faster!"
+
+        self.display_info(info_string, "Slow startup")
+    
+    def save_vs_saveas(self):
+        info_string = ("\"Save as\" ALWAYS asks you for the folder and name you would like to save it as. " +
+        "\"Save\", on the other hand, only asks the first time (or never if \"Save as\" has already been used) " +
+        "and then saves the picture straight to the already-selected folder with the time as its name. " +
+        "This folder can be changed by using \"Save as\" again.")
+
+        self.display_info(info_string, "Save and Save as")
     
     def refresh_planets(self):
         planet_process = threading.Thread(None, lambda: constant_planet_update(True))
@@ -463,8 +483,13 @@ Within {} (Constellation)
         self.display_info("Time successfully changed to \"{}\"".format(obstime), "Time change successful")
     
     def save_as_image(self):
-        fil = filedialog.asksaveasfile()
-        fil.close()
+        fil = filedialog.asksaveasfilename(defaultextension='.png', filetypes=[("PNG", ".png"), ("JPEG", ".jpeg"),
+                                                                           ("JPEG", ".jpg"), ("GIF", ".gif"),
+                                                                           ("BMP", ".bmp")],
+                                       initialdir=SAVE_INITIAL_DIR, initialfile=str(uuid.uuid4()), parent=self, title="Save Image")
+        
+        if fil is None:
+            return
 
         full_im = Image.new('RGB', (768, 768))
 
@@ -477,7 +502,7 @@ Within {} (Constellation)
 
             full_im.paste(self.image_cache[(true_shiftx, true_shifty)], (positional_shiftx, positional_shifty))
         
-        full_im.show()
+        full_im.save(fil)
 
     def render(self, referral=False):
         if referral:

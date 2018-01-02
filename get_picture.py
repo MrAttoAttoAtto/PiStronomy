@@ -43,7 +43,7 @@ def get_sky_picture(base_ra, base_de, shiftx=0, shifty=0, magnification_level=0)
             http_response = requests.get('http://server{}.wikisky.org/imgcut'.format(random.randint(1, 9)),
                                          params=param_dict, timeout=0.5)
             break
-        except (requests.exceptions.ReadTimeout, requests.exceptions.COnnectTimeout):
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectTimeout):
             continue
 
     image = Image.open(BytesIO(http_response.content))
