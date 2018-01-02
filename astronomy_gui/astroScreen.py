@@ -25,7 +25,7 @@ from tools import (coordinates_from_observer, from_deg_rep, from_hour_rep,
 # True is the system is windows, False otherwise
 WINDOWS = os.name == 'nt'
 
-SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "~/Pictures"
+SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "/home/pi/Pictures"
 
 # the altitude at which it is considered impossible to see a star (i.e. too close to the horizon)
 UNSEEABLE_START_ALTITUDE = 20
@@ -114,7 +114,7 @@ class AstroScreen(Page):
     
     def _setup_menus(self):
         self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
-                               activebackground='#262626', activeforeground='white')
+                               activebackground='#262626', activeforeground='white', borderwidth=1, relief=tk.SUNKEN)
 
         # setting up the file submenu
         file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
