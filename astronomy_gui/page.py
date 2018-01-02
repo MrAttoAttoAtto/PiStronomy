@@ -22,7 +22,10 @@ class Page(tk.Frame):
     def __init__(self, parent):
         super().__init__(master=parent)
 
-        self.loading_gif_path = get_imagepath("loadingIcon")
+        self.configure(background='black')
+        self.background = 'black'
+
+        self.loading_gif_path = get_imagepath("loadingIconBlack")
 
     def render(self, data=False):
         '''Receives render data through kwargs, and has to change values.'''
@@ -45,11 +48,17 @@ class Page(tk.Frame):
 
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(index+1, label, start_time))
     
-    def check_thread(self, thread, callback):
-        if thread.is_alive():
-            CONTROLLER.after(self.CHECK_FREQUENCY, lambda: self.check_thread(thread, callback))
+    def check_thread(self, thread, callback, many=False):
+        if many:
+            if any(map(lambda thread=thread: thread.is_alive(), thread)):
+                CONTROLLER.after(self.CHECK_FREQUENCY, lambda: self.check_thread(thread, callback, True))
+            else:
+                callback()
         else:
-            callback()
+            if thread.is_alive():
+                CONTROLLER.after(self.CHECK_FREQUENCY, lambda: self.check_thread(thread, callback))
+            else:
+                callback()
     
     def display_current_ip(self):
         curr_ip = get_ip()

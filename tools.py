@@ -4,6 +4,7 @@ import socket
 import subprocess
 import os
 import time
+import queue
 
 from astropy.coordinates import SkyCoord, AltAz, EarthLocation
 from astropy.time import Time
@@ -174,3 +175,10 @@ def get_object_coordinates(obj):
     coordinates = SkyCoord.from_name(obj)
 
     return coordinates.ra.hour, coordinates.dec.deg
+
+def safe_put(q, item):
+        try:
+            q.put(item, block=False)
+        except queue.Full:
+            q.get()
+            q.put(item, block=False)

@@ -6,7 +6,6 @@ from PIL import Image
 
 import tools
 
-
 def old_get_sky_picture(param_dict={}, ra=None, de=None):
     param_dict['survey'] = 'DSS2'
 
@@ -39,10 +38,17 @@ def get_sky_picture(base_ra, base_de, shiftx=0, shifty=0, magnification_level=0)
     param_dict['x_shift'] = shiftx
     param_dict['y_shift'] = shifty
 
-    http_response = requests.get('http://server{}.wikisky.org/imgcut'.format(random.randint(1, 9)),
-                                 params=param_dict)
+    while True:
+        try:
+            http_response = requests.get('http://server{}.wikisky.org/imgcut'.format(random.randint(1, 9)),
+                                         params=param_dict, timeout=0.5)
+            break
+        except requests.exceptions.ReadTimeout:
+            continue
 
     image = Image.open(BytesIO(http_response.content))
+
+    print("Pic got")
 
     return image
 

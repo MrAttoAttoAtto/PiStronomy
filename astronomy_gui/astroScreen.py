@@ -3,13 +3,13 @@ import threading
 import time
 import tkinter as tk
 import uuid
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, filedialog
 
 from astropy.coordinates.errors import UnknownSiteException
 from astropy.coordinates import EarthLocation
 from astropy.coordinates.name_resolve import NameResolveError
 from astropy.time import Time
-from PIL import ImageTk
+from PIL import Image, ImageTk
 from PIL.Image import ANTIALIAS
 
 from astronomy_gui.controller import CONTROLLER
@@ -19,7 +19,7 @@ from get_picture import get_sky_picture
 from planets import MAPPING_DICT, PLANET_COORDINATES, constant_planet_update
 from tools import (coordinates_from_observer, from_deg_rep, from_hour_rep,
                    get_constellation, get_earth_location_coordinates,
-                   get_object_coordinates)
+                   get_object_coordinates, safe_put)
 
 # the altitude at which it is considered impossible to see a star (i.e. too close to the horizon)
 UNSEEABLE_START_ALTITUDE = 20
@@ -29,14 +29,23 @@ IMAGE_RESOLUTION = (150, 150)
 
 # astronomy main screen class
 class AstroScreen(Page):
+    # Pixel ofsets for the pixel shifts of the 3x3 sky view
+    IMAGE_PIXEL_OFFSETS = [
+        (256, 256),  (0, 256),  (-256, 256),
+        (256, 0),    (0, 0),    (-256, 0),
+        (256, -256), (0, -256), (-256, -256)
+    ]
+
     def __init__(self, parent):
         #setup things
         super().__init__(parent)
 
         self.all_coords = []
 
-        self.base_ra = 0
-        self.base_de = 0
+        # The Pleiades
+        self.base_ra = from_hour_rep(3, 47, 24)
+        self.base_de = from_deg_rep(24, 7, 0)
+
         self.shiftx = 0
         self.shifty = 0
         self.magnification = 0.0
@@ -45,8 +54,6 @@ class AstroScreen(Page):
         self.lat, self.long = get_earth_location_coordinates(self.location.lower())
         self.time = time.strftime("%Y-%m-%d %H:%M:%S")
         self.time_manual = False
-
-        load_image = tk.PhotoImage(file=self.loading_gif_path, format='gif -index 0')
 
         self.width = 800
         self.height = 480
@@ -65,34 +72,48 @@ class AstroScreen(Page):
         #instr_label.grid(row=0, column=1, columnspan=3)
 
         #loading things
-        self.load_label = tk.Label(self, image=load_image)
+        load_image = tk.PhotoImage(file=self.loading_gif_path, format='gif -index 0')
+
+        self.load_label = tk.Label(self, image=load_image, borderwidth=0, highlightthickness=0)
         self.load_label.image = load_image
 
-        self.load_label.pack()
+        self.load_label.grid(row=1, column=1)
 
-        self.image_label = tk.Label(self, image=None)
-        self.image_label.image = None
+        self.image_label_list = [tk.Label(self, image=None, borderwidth=0, highlightthickness=0) for i in range(9)]
+        for index, label in enumerate(self.image_label_list):
+            row = (index // 3) + 1
+            column = (index % 3) + 1
+
+            label.grid(row=row, column=column)
+            label.grid_remove()
+        
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(4, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(4, weight=1)
 
         self._setup_menus()
 
         self._do_bindings()
 
+        self.image_cache = {}
+
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
 
-        self.image_queue = queue.Queue(1)
+        self.image_queue_list = [queue.Queue(1) for i in range(9)]
 
-        self.base_ra = from_hour_rep(3, 47, 24)
-        self.base_de = from_deg_rep(24, 7, 0)
+        #shiftx, shifty, new_base_ra=None, new_base_de=None, new_base_magnification=None, overwrite_cache=False
 
-        image_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(self.base_ra, self.base_de)))
-        image_process.start()
-
-        CONTROLLER.after(self.CHECK_FREQUENCY,
-                         lambda: self.check_thread(image_process,
-                                                   self.display_image))
+        self.generate_batch_images(0, 0)
     
     def _setup_menus(self):
-        self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE))
+        self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                                                                              activebackground='black', activeforeground='white')
+
+        # setting up the file submenu
+        file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+
+        file_menu.add_command(label="Save As", command=self.save_as_image)
 
         # setting up the astronomy submenu
         astronomy_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
@@ -127,6 +148,7 @@ class AstroScreen(Page):
         help_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
         help_menu.add_command(label="List of sites", command=self.show_sites)
 
+        self.menubar.add_cascade(label='File', menu=file_menu)
         self.menubar.add_cascade(label='Astronomy', menu=astronomy_menu)
         self.menubar.add_cascade(label="Wifi", menu=wifi_menu)
         self.menubar.add_cascade(label="Settings", menu=settings_menu)
@@ -160,7 +182,7 @@ class AstroScreen(Page):
         new_mag = simpledialog.askfloat("Enter new magnification", "Please enter a new magnification (0 is the default, -1 is smaller and 1 is bigger.)\nThe magnification is currently {}".format(self.magnification), parent=self)
 
         if new_mag is not None:
-            self.generate_image(0, 0, None, None, new_mag)
+            self.generate_batch_images(0, 0, new_base_magnification=new_mag, overwrite_cache=True)
 
     def show_sites(self):
         locations = EarthLocation.get_site_names()
@@ -223,27 +245,48 @@ class AstroScreen(Page):
                                "and declination in the range -90 - 90", "Invalid input")
             return
 
-        self.generate_image(0, 0, righta, dec)
+        self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
 
-    def display_image(self):
-        self.load_label.pack_forget()
+    def display_image(self, all_cached=False):
+        print("Pics done")
 
-        self.image_label.pack_forget()
+        self.load_label.grid_remove()
 
-        image = self.image_queue.get()
+        for index in range(9):
+            starttime = time.time()
 
-        image = image.resize(IMAGE_RESOLUTION, ANTIALIAS)
+            while True and time.time() - starttime < 1:
+                try:
+                    image, shiftx, shifty = self.image_queue_list[index].get(block=False)
+                    break
+                except queue.Empty:
+                    if all_cached:
+                        return
+                    continue
 
-        tk_image = ImageTk.PhotoImage(image)
+            try:
+                if not (shiftx, shifty) in self.image_cache:
+                    self.image_cache[(shiftx, shifty)] = image
+            except UnboundLocalError:
+                self.display_error("Whoah man! Easy on the movement! In all seriousness, spamming makes it break, but this can be fixed by just moving again (this time slowly!). " +
+                                   "If you really need to scratch that spamming itch, load the images into the cache (by moving around) and then you can spam to your heart's content " +
+                                   "within the images that you just loaded!", "Spamming is bad")
+                return
 
-        self.image_label.configure(image=tk_image)
-        self.image_label.image = tk_image
+            self.image_label_list[index].grid_remove()
+            
+            image = image.resize(IMAGE_RESOLUTION, ANTIALIAS)
 
-        self.image_label.pack()
+            tk_image = ImageTk.PhotoImage(image)
 
-    def generate_image(self, shiftx, shifty, new_base_ra=None, new_base_de=None, new_base_magnification=None):
-        self.shiftx += shiftx
-        self.shifty += shifty
+            self.image_label_list[index].configure(image=tk_image)
+            self.image_label_list[index].image = tk_image
+
+            self.image_label_list[index].grid()
+    
+    def generate_batch_images(self, shiftx, shifty, new_base_ra=None, new_base_de=None, new_base_magnification=None, overwrite_cache=False):
+        if overwrite_cache:
+            self.image_cache = {}
 
         if new_base_ra is not None:
             self.base_ra = new_base_ra
@@ -254,12 +297,35 @@ class AstroScreen(Page):
         if new_base_magnification is not None:
             self.magnification = new_base_magnification
 
-        image_process = threading.Thread(None, lambda: self.image_queue.put(get_sky_picture(self.base_ra, self.base_de, self.shiftx, self.shifty, self.magnification)))
-        image_process.start()
+        # shift for the middle square
+        self.shiftx += shiftx
+        self.shifty += shifty
+        
+        image_processes = []
+        cached = 0
+        
+        for index, (aug_shiftx, aug_shifty) in enumerate(self.IMAGE_PIXEL_OFFSETS):
+            real_shiftx = self.shiftx + aug_shiftx
+            real_shifty = self.shifty + aug_shifty
+
+            if (real_shiftx, real_shifty) in self.image_cache:
+                print("Cached!")
+                cached += 1
+                safe_put(self.image_queue_list[index], (self.image_cache[(real_shiftx, real_shifty)], real_shiftx, real_shifty))
+                continue
+
+            image_process = threading.Thread(None, lambda real_shiftx=real_shiftx,real_shifty=real_shifty,index=index: safe_put(self.image_queue_list[index],
+                                                                                                                                (get_sky_picture(self.base_ra, self.base_de, real_shiftx, real_shifty, self.magnification),
+                                                                                                                                 real_shiftx, real_shifty)))
+            image_process.setDaemon(True)
+            image_process.start()
+
+            image_processes.append(image_process)
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
-                         lambda: self.check_thread(image_process,
-                                                   self.display_image))
+                         lambda: self.check_thread(image_processes,
+                                                   lambda cached=cached: self.display_image(cached == 9),
+                                                   True))
     
     def wifi_button_func(self):
         CONTROLLER.unbind("<Left>")
@@ -271,15 +337,15 @@ class AstroScreen(Page):
         CONTROLLER.config(menu=tk.Menu(self))
     
     def _do_bindings(self):
-        CONTROLLER.bind("<Left>", lambda e: self.generate_image(128, 0))
-        CONTROLLER.bind("<Right>", lambda e: self.generate_image(-128, 0))
-        CONTROLLER.bind("<Up>", lambda e: self.generate_image(0, 128))
-        CONTROLLER.bind("<Down>", lambda e: self.generate_image(0, -128))
+        CONTROLLER.bind("<Left>", lambda e: self.generate_batch_images(256, 0))
+        CONTROLLER.bind("<Right>", lambda e: self.generate_batch_images(-256, 0))
+        CONTROLLER.bind("<Up>", lambda e: self.generate_batch_images(0, 256))
+        CONTROLLER.bind("<Down>", lambda e: self.generate_batch_images(0, -256))
 
-        CONTROLLER.bind("<Control-a>", lambda e: self.generate_image(128, 0))
-        CONTROLLER.bind("<Control-d>", lambda e: self.generate_image(-128, 0))
-        CONTROLLER.bind("<Control-w>", lambda e: self.generate_image(0, 128))
-        CONTROLLER.bind("<Control-s>", lambda e: self.generate_image(0, -128))
+        CONTROLLER.bind("<Control-a>", lambda e: self.generate_batch_images(256, 0))
+        CONTROLLER.bind("<Control-d>", lambda e: self.generate_batch_images(-256, 0))
+        CONTROLLER.bind("<Control-w>", lambda e: self.generate_batch_images(0, 256))
+        CONTROLLER.bind("<Control-s>", lambda e: self.generate_batch_images(0, -256))
 
     def show_planet(self, index):
         try:
@@ -293,7 +359,7 @@ class AstroScreen(Page):
             self.display_error("The planet data has not been generated yet, please wait for the prompt then try again", "Data not available")
             return
 
-        self.generate_image(0, 0, planet_ra, planet_de)
+        self.generate_batch_images(0, 0, planet_ra, planet_de, overwrite_cache=True)
     
     def show_planet_info(self, index):
         try:
@@ -329,7 +395,7 @@ Within {} (Constellation)
         self.display_info(info_string, "Planet info")
     
     def show_object(self):
-        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: , "Polaris", M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
+        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: , "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
 
         if obj is None:
             return
@@ -340,10 +406,10 @@ Within {} (Constellation)
             self.display_error("This object \"{}\" is not recognised, please choose another object\nNote: Solar system objects must be selected from their menu".format(obj), "Object not recognised")
             return
 
-        self.generate_image(0, 0, righta, dec)
+        self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
     
     def show_object_info(self):
-        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "Polaris", M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
+        obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor")', parent=self)
 
         if obj is None:
             return
@@ -395,6 +461,23 @@ Within {} (Constellation)
         self.time_manual = True
 
         self.display_info("Time successfully changed to \"{}\"".format(obstime), "Time change successful")
+    
+    def save_as_image(self):
+        fil = filedialog.asksaveasfile()
+        fil.close()
+
+        full_im = Image.new('RGB', (768, 768))
+
+        for shiftx, shifty in self.IMAGE_PIXEL_OFFSETS:
+            true_shiftx = shiftx + self.shiftx
+            true_shifty = shifty + self.shifty
+
+            positional_shiftx = abs(shiftx - 256)
+            positional_shifty = abs(shifty - 256)
+
+            full_im.paste(self.image_cache[(true_shiftx, true_shifty)], (positional_shiftx, positional_shifty))
+        
+        full_im.show()
 
     def render(self, referral=False):
         if referral:
