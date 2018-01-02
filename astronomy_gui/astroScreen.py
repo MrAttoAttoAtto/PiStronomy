@@ -114,17 +114,21 @@ class AstroScreen(Page):
     
     def _setup_menus(self):
         self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
-                                                                              activebackground='black', activeforeground='white')
+                               activebackground='#262626', activeforeground='white')
 
         # setting up the file submenu
-        file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                            activebackground='#262626', activeforeground='white')
         file_menu.add_command(label="Save As", command=self.save_as_image)
 
         # setting up the astronomy submenu
-        astronomy_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        astronomy_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                                 activebackground='#262626', activeforeground='white')
 
-        planet_goto_menu = tk.Menu(astronomy_menu, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
-        planet_info_menu = tk.Menu(astronomy_menu, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        planet_goto_menu = tk.Menu(astronomy_menu, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                                   activebackground='#262626', activeforeground='white')
+        planet_info_menu = tk.Menu(astronomy_menu, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                                   activebackground='#262626', activeforeground='white')
         for planet in MAPPING_DICT:
             planet_goto_menu.add_command(label=planet, command=lambda planet=planet: self.show_planet(MAPPING_DICT[planet]))
             planet_info_menu.add_command(label=planet, command=lambda planet=planet: self.show_planet_info(MAPPING_DICT[planet]))
@@ -137,20 +141,23 @@ class AstroScreen(Page):
         astronomy_menu.add_command(label="Object info (By name)", command=self.show_object_info)
 
         # setting up the wifi submenu
-        wifi_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        wifi_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                            activebackground='#262626', activeforeground='white')
         wifi_menu.add_command(label='Open Wifi Screen', command=self.wifi_button_func)
         wifi_menu.add_command(label="Check IP", command=self.display_current_ip)
         wifi_menu.add_command(label="Check SSID", command=self.display_current_ssid)
 
         # setting up the settings submenu
-        settings_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        settings_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                                activebackground='#262626', activeforeground='white')
         settings_menu.add_command(label="Change magnification", command=self.set_magnification)
         settings_menu.add_command(label="Change coordinates", command=self.set_coordinates)
         settings_menu.add_command(label="Change location", command=self.set_location)
         settings_menu.add_command(label="Change time", command=self.set_time)
 
         # setting up the help submenu
-        help_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE))
+        help_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                            activebackground='#262626', activeforeground='white')
         help_menu.add_command(label="List of sites", command=self.show_sites)
         help_menu.add_command(label="Movement slow?", command=self.slow_move)
         help_menu.add_command(label="Save and Save as", command=self.save_vs_saveas)
