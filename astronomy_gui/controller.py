@@ -17,7 +17,7 @@ class Controller(tk.Tk):
         self.configure(background='white')
 
         if fullscreen:
-            w, h = self.winfo_screenwidth(), self.winfo_screenheight()-30
+            w, h = self.winfo_screenwidth(), self.winfo_screenheight()-45
             self.attributes('-fullscreen', True)
             self.geometry("{}x{}+0+0".format(w, h))
         else:
