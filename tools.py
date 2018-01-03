@@ -187,8 +187,6 @@ def get_magnitude(obj):
 
     http_response = requests.get("http://simbad.u-strasbg.fr/simbad/sim-tap/sync", params=param_dict, timeout=3)
 
-    print(http_response.content)
-
     mag = http_response.content.split(b"\n")[2].decode()
 
     if mag == ' ' or mag == '':

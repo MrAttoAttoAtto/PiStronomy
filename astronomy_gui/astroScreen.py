@@ -323,6 +323,10 @@ class AstroScreen(Page):
         if new_base_de is not None:
             self.base_de = new_base_de
         
+        if new_base_de is not None or new_base_ra is not None:
+            self.shiftx = 0
+            self.shifty = 0
+        
         if new_base_magnification is not None:
             self.magnification = new_base_magnification
 
