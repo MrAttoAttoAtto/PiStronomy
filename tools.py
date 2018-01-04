@@ -163,6 +163,15 @@ def get_coordinates_from_observer(righta, dec, location, obstime):
 
     return alt_az.az.deg, alt_az.alt.deg
 
+def convert_altaz_to_radec(az, alt, location, obstime):
+    real_time = Time(obstime)
+    real_location = EarthLocation.of_site(location)
+
+    altaz_coords = SkyCoord(az=az, alt=alt, unit=("deg", "deg"), frame=AltAz(obstime=real_time, location=real_location))
+    radec_coords = altaz_coords.transform_to("icrs")
+
+    return radec_coords.ra.hour, radec_coords.dec.deg
+
 def get_earth_location_coordinates(location):
     real_location = EarthLocation.of_site(location)
 
@@ -195,8 +204,8 @@ def get_magnitude(obj):
     return float(mag)
 
 def safe_put(q, item):
-        try:
-            q.put(item, block=False)
-        except queue.Full:
-            q.get()
-            q.put(item, block=False)
+    try:
+        q.put(item, block=False)
+    except queue.Full:
+        q.get()
+        q.put(item, block=False)

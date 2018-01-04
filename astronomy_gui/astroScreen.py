@@ -18,8 +18,8 @@ from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
 from get_picture import get_sky_picture
 from planets import MAPPING_DICT, PLANET_COORDINATES, constant_planet_update
-from tools import (from_deg_rep, from_hour_rep, get_constellation,
-                   get_coordinates_from_observer,
+from tools import (convert_altaz_to_radec, from_deg_rep, from_hour_rep,
+                   get_constellation, get_coordinates_from_observer,
                    get_earth_location_coordinates, get_magnitude,
                    get_object_coordinates, safe_put)
 
@@ -152,7 +152,8 @@ class AstroScreen(Page):
         settings_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
                                 activebackground='#262626', activeforeground='white')
         settings_menu.add_command(label="Change magnification", command=self.set_magnification)
-        settings_menu.add_command(label="Change coordinates", command=self.set_coordinates)
+        settings_menu.add_command(label="Change coordinates (ra/dec)", command=self.set_coordinates)
+        settings_menu.add_command(label="Change coordinates (az/alt)", command=self.set_azalt_coordinates)
         settings_menu.add_command(label="Change location", command=self.set_location)
         settings_menu.add_command(label="Change time", command=self.set_time)
 
@@ -272,6 +273,59 @@ class AstroScreen(Page):
             self.display_error("That was not a valid input!\nRight ascension is in the range 0 - 24 " +
                                "and declination in the range -90 - 90", "Invalid input")
             return
+
+        self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
+    
+    def set_azalt_coordinates(self):
+        if not self.time_manual:
+            self.time = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        old_az, old_alt = get_coordinates_from_observer(self.base_ra, self.base_de, self.location, self.time)
+
+        coordinate_string = simpledialog.askstring("Enter new coordinates", "Please enter new coordinates.\nThe formats \"(az_degrees, az_arcmins, az_arcsecs), (alt_degrees, alt_arcmins, alt_arcsecs)\"\n" +
+                                                   "and \"az_degrees, alt_degrees\" (where the latter takes values with decimal points) are both acceptable." +
+                                                   "\nThe current values are: {} degrees (azimuth), {} degrees (altitude)".format(round(old_az, 2), round(old_alt, 2)), parent=self)
+        
+        if coordinate_string is None:
+            return
+
+        coordinate_string = coordinate_string.replace("(", "")
+        coordinate_string = coordinate_string.replace(")", "")
+        coordinate_string = coordinate_string.replace(" ", "")
+
+        split_string = coordinate_string.split(",")
+
+        if len(split_string) == 2:
+            try:
+                az = float(split_string[0])
+                alt = float(split_string[1])
+            except ValueError:
+                self.display_error("That was not a valid input!", "Invalid input")
+                return
+        elif len(split_string) == 6:
+            try:
+                az_degs = float(split_string[0])
+                az_mins = float(split_string[1])
+                az_secs = float(split_string[2])
+                alt_degs = float(split_string[3])
+                alt_mins = float(split_string[4])
+                alt_secs = float(split_string[5])
+            except ValueError:
+                self.display_error("That was not a valid input!", "Invalid input")
+                return
+
+            az = from_deg_rep(az_degs, az_mins, az_secs)
+            alt = from_deg_rep(alt_degs, alt_mins, alt_secs)
+        else:
+            self.display_error("That was not a valid input!", "Invalid input")
+            return
+
+        if az > 90 or az < -90 or alt > 90 or alt < -90:
+            self.display_error("That was not a valid input!\nAzimuth is in the range -90 - 90 " +
+                               "and altitude in the range -90 - 90", "Invalid input")
+            return
+
+        righta, dec = convert_altaz_to_radec(az, alt, self.location, self.time)
 
         self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
 
