@@ -320,7 +320,7 @@ class AstroScreen(Page):
             self.display_error("That was not a valid input!", "Invalid input")
             return
 
-        if az > 90 or az < -90 or alt > 90 or alt < -90:
+        if az >= 360 or az < 0 or alt > 90 or alt < -90:
             self.display_error("That was not a valid input!\nAzimuth is in the range -90 - 90 " +
                                "and altitude in the range -90 - 90", "Invalid input")
             return
