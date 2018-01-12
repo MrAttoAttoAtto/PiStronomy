@@ -119,10 +119,16 @@ class WifiScreen(Page):
             selected_ssid = selected_ssid[:-8]
 
         if not selected_ssid in self.known_ssids:
-            password = simpledialog.askstring("Enter Password", "Please enter the password for \"{}\"".format(selected_ssid), show="*", parent=self)
-            print(password)
-            return
-            pass
+            psk = simpledialog.askstring("Enter Password", "Please enter the password for \"{}\"".format(selected_ssid), show="*", parent=self)
+            
+            if psk is None:
+                self.display_error("A password cannot be empty", "Empty Password")
+                return
+
+            self.known_configurations.append({"ssid":selected_ssid, "psk":psk})
+
+            json.dump(self.known_configurations, open("wifi_settings.json", "w"))
+
         else:
             for diction in self.known_configurations:
                 if diction['ssid'] == selected_ssid:
