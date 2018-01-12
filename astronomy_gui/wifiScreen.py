@@ -4,6 +4,7 @@ import queue
 import threading
 import time
 import tkinter as tk
+from tkinter import simpledialog
 
 from astronomy_gui.controller import CONTROLLER
 from astronomy_gui.images import get_imagepath
@@ -118,7 +119,9 @@ class WifiScreen(Page):
             selected_ssid = selected_ssid[:-8]
 
         if not selected_ssid in self.known_ssids:
-            #TODO do extra password getting
+            password = simpledialog.askstring("Enter Password", "Please enter the password for \"{}\"".format(selected_ssid), show="*", parent=self)
+            print(password)
+            return
             pass
         else:
             for diction in self.known_configurations:
