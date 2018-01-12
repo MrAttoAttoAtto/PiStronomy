@@ -4,10 +4,9 @@ import queue
 import threading
 import time
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import simpledialog, messagebox
 
 from astronomy_gui.controller import CONTROLLER
-from astronomy_gui.images import get_imagepath
 from astronomy_gui.page import Page
 from tools import get_all_ssids, mobile_connect, get_current_ssid, delete_prior_connection
 
@@ -38,6 +37,9 @@ class WifiScreen(Page):
         self.load_label = tk.Label(self, image=load_image)
         self.load_label.image = load_image
 
+        self.ssid_scrollbar = tk.Scrollbar(self)
+        self.ssid_listbox = tk.Listbox(self, yscrollcommand=self.ssid_scrollbar.set, font=("Helvetica", 20))
+
         if WINDOWS:
             self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=37)
         else:
@@ -65,9 +67,75 @@ class WifiScreen(Page):
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(ssid_list_process,
-                                                   lambda: self.display_ssids(self.load_label)))
+                                                   self.display_ssids))
 
-    def display_ssids(self, label):
+    def _setup_menus(self):
+        self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                               activebackground='#262626', activeforeground='white', borderwidth=1, relief=tk.SUNKEN)
+
+        # setting up the file submenu
+        file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                            activebackground='#262626', activeforeground='white')
+        file_menu.add_command(label="Exit", command=CONTROLLER.destroy)
+
+        # setting up the wifi submenu
+        wifi_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                            activebackground='#262626', activeforeground='white')
+        wifi_menu.add_command(label='Leave Wifi Screen', command=self.back)
+        wifi_menu.add_command(label="Check IP", command=self.display_current_ip)
+        wifi_menu.add_command(label="Check SSID", command=self.display_current_ssid)
+
+        # setting up the settings submenu
+        settings_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                                activebackground='#262626', activeforeground='white')
+        settings_menu.add_command(label="Delete saved credentials", command=self.delete_saved_connection)
+
+        # setting up the help submenu
+        help_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
+                            activebackground='#262626', activeforeground='white')
+        help_menu.add_command(label="Using this screen", command=self.how_to)
+        help_menu.add_command(label="Deleting saved credentials", command=self.how_del)
+        help_menu.add_command(label="Using a keyboard from your phone", command=self.how_use_phone)
+
+        self.menubar.add_cascade(label='File', menu=file_menu)
+        self.menubar.add_cascade(label="Wifi", menu=wifi_menu)
+        self.menubar.add_cascade(label="Settings", menu=settings_menu)
+        self.menubar.add_cascade(label="Help", menu=help_menu)
+
+        CONTROLLER.config(menu=self.menubar)
+
+    def how_to(self):
+        info_string = ("This screen is used to connect to a different wifi (your phone's personal hotspot for example). " +
+                       "When connecting, you put in the password and this is automatically saved over sessions, unless it is deleted " +
+                       "from the settings submenu. The primary use is to allow you to easily connect to a phone, so that while on the school " +
+                       "wifi you can use your phone as a keyboard.")
+
+        self.display_info(info_string, "Using this screen")
+
+    def how_del(self):
+        info_string = ("Credentials are automatically saved the first time you input them. " +
+                       "In order to delete them, select the \"Delete saved credentials\" option from the \"Settings\" submenu " +
+                       "while selecting the wifi you wish to delete.")
+
+        self.display_info(info_string, "Deleting credentials")
+    
+    def how_use_phone(self):
+        info_string = ("To use your phone as a keyboard, the first step is to download the \"Unified Remote\" app from your " +
+                       "device's app store. Then, connect the Pi to your phone's personal hotspot (or, if it is in range, " +
+                       "your personal wifi). Next, in the \"Wifi\" menu, select \"Check IP\" and input this value " +
+                       "into the \"Host IP / Address\" field, after having selected \"Add a server manually\" from the \"Servers\" " +
+                       "screen. You may change the \"Display name\" field to whatever you please, but keep the rest as default and " +
+                       "select \"Done\". From here, make sure that your new server is selected and go back to the \"Remotes\" screen. " +
+                       "From here, you may use any of the remotes, however, I suggest the standard keyboard as you can use the " +
+                       "mouse from this screen (bottom-right corner) and may use the \"ctrl\" key for moving. Note: it may say " +
+                       "\"Feature Locked\" if you try to use the \"ctrl\" or other special keys, but if they are used directly " +
+                       "from the keyboard they will work (i.e. not from the iOS or Android intergrated keyboards). Another note: " +
+                       "to use the \"ctrl\" and other similar keys, they must be pressed, then the other key (such as \"w\") " + 
+                       "should be pressed, and then the special key pressed AGAIN to release it, otherwise it will not work.")
+
+        self.display_info(info_string, "Using your phone to control the keyboard")
+
+    def display_ssids(self):
         try:
             result_tuple = self.ssid_queue.get(block=False)
             print(result_tuple)
@@ -78,12 +146,9 @@ class WifiScreen(Page):
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
 
-        label.grid_remove()
+        self.load_label.grid_remove()
 
-        self.ssid_scrollbar = tk.Scrollbar(self)
         self.ssid_scrollbar.grid(row=1, column=4, rowspan=3, sticky=tk.W+tk.N+tk.S)
-
-        self.ssid_listbox = tk.Listbox(self, yscrollcommand=self.ssid_scrollbar.set, font=("Helvetica", 20))
 
         saved_available_indexes = []
 
@@ -98,29 +163,27 @@ class WifiScreen(Page):
 
         if 'connect_index' in locals():
             self.ssid_listbox.itemconfig(connect_index, fg='green')
-        
+
         for index in saved_available_indexes:
             self.ssid_listbox.itemconfig(index, fg='cyan')
 
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
 
         self.ssid_scrollbar.config(command=self.ssid_listbox.yview)
-    
+
     def wifi_connect(self):
         selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
 
         if selected_ssid[:-12] == self.current_network:
-            # error! You can't connect to the network you're already connected to!
             self.display_error("You can't connect to the same network you're connected to!", "Connection error")
-            # TODO: add error box
             return
-        
-        if selected_ssid.endswith(" - Saved"):
+
+        if selected_ssid in self.known_ssids:
             selected_ssid = selected_ssid[:-8]
 
         if not selected_ssid in self.known_ssids:
             psk = simpledialog.askstring("Enter Password", "Please enter the password for \"{}\"".format(selected_ssid), show="*", parent=self)
-            
+
             if psk is None:
                 self.display_error("A password cannot be empty", "Empty Password")
                 return
@@ -134,7 +197,7 @@ class WifiScreen(Page):
                 if diction['ssid'] == selected_ssid:
                     psk = diction['psk']
                     break
-        
+
         self.ssid_listbox.grid_remove()
         self.ssid_scrollbar.grid_remove()
 
@@ -148,8 +211,8 @@ class WifiScreen(Page):
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(change_connection_process,
-                                                   lambda: self.update_ssids(self.load_label)))
-    
+                                                   self.update_ssids))
+
     def wifi_refresh(self):
         self.ssid_listbox.grid_remove()
         self.ssid_scrollbar.grid_remove()
@@ -163,12 +226,32 @@ class WifiScreen(Page):
 
         CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(ssid_list_process,
-                                                   lambda: self.update_ssids(self.load_label)))
-    
+                                                   self.update_ssids))
+
     def back(self):
+        CONTROLLER.config(menu=tk.Menu(self))
         CONTROLLER.show_page('AstroScreen', True)
-    
-    def update_ssids(self, label):
+
+    def delete_saved_connection(self):
+        selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
+
+        if selected_ssid not in self.known_ssids:
+            self.display_error("No login is saved for this wifi!", "No data found")
+            return
+
+        resp = messagebox.askyesno("Delete \"{}\"".format(selected_ssid), "Are you sure you want to delete the password for \"{}\"?".format(selected_ssid))
+
+        if resp:
+            for index, config in enumerate(self.known_configurations):
+                if config["ssid"] == selected_ssid:
+                    del self.known_configurations[index]
+            for index, ssid in enumerate(self.known_ssids):
+                if ssid == selected_ssid:
+                    del self.known_ssids[index]
+
+            json.dump(self.known_configurations, open("wifi_settings.json", "w"))
+
+    def update_ssids(self):
         try:
             result_tuple = self.ssid_queue.get(block=False)
             ssids = result_tuple[0]
@@ -178,7 +261,7 @@ class WifiScreen(Page):
             print("ERROR GETTING AVAILABLE NETWORKS")
             ssids = ["Could not acquire network information, please refresh"]
 
-        label.grid_remove()
+        self.load_label.grid_remove()
 
         self.ssid_listbox.delete(0, tk.END)
 
@@ -192,12 +275,15 @@ class WifiScreen(Page):
                 saved_available_indexes.append(ssids.index(ssid))
                 ssid += " - Saved"
             self.ssid_listbox.insert(tk.END, ssid)
-        
+
         if 'connect_index' in locals():
             self.ssid_listbox.itemconfig(connect_index, fg='green')
-        
+
         for index in saved_available_indexes:
             self.ssid_listbox.itemconfig(index, fg='cyan')
 
         self.ssid_scrollbar.grid()
         self.ssid_listbox.grid()
+    
+    def render(self, data):
+        self._setup_menus()

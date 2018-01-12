@@ -121,6 +121,8 @@ class AstroScreen(Page):
         file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
                             activebackground='#262626', activeforeground='white')
         file_menu.add_command(label="Save As", command=self.save_as_image)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=CONTROLLER.destroy)
 
         # setting up the astronomy submenu
         astronomy_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
@@ -216,9 +218,9 @@ class AstroScreen(Page):
     
     def save_vs_saveas(self):
         info_string = ("\"Save as\" ALWAYS asks you for the folder and name you would like to save it as. " +
-        "\"Save\", on the other hand, only asks the first time (or never if \"Save as\" has already been used) " +
-        "and then saves the picture straight to the already-selected folder with the time as its name. " +
-        "This folder can be changed by using \"Save as\" again.")
+                       "\"Save\", on the other hand, only asks the first time (or never if \"Save as\" has already been used) " +
+                       "and then saves the picture straight to the already-selected folder with the time as its name. " +
+                       "This folder can be changed by using \"Save as\" again.")
 
         self.display_info(info_string, "Save and Save as")
     
@@ -427,8 +429,8 @@ class AstroScreen(Page):
         CONTROLLER.unbind("<Up>")
         CONTROLLER.unbind("<Down>")
 
-        CONTROLLER.show_page('WifiScreen')
         CONTROLLER.config(menu=tk.Menu(self))
+        CONTROLLER.show_page('WifiScreen')
     
     def _do_bindings(self):
         CONTROLLER.bind("<Left>", lambda e: self.generate_batch_images(256, 0))
