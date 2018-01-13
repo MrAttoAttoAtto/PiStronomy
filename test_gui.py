@@ -1,6 +1,5 @@
 import tkinter as tk
 
-from astronomy_gui import *
 from astronomy_gui import pages
 from astronomy_gui.controller import CONTROLLER
 

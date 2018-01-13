@@ -46,7 +46,7 @@ class WifiScreen(Page):
             self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=28)
 
         #submit button things
-        submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green', activeforeground='green')
+        submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green', activeforeground='green', bg="black")
         #submit_button.image = lockedButton
         submit_button.grid(row=4, column=2, pady=16)
 
@@ -68,6 +68,8 @@ class WifiScreen(Page):
         CONTROLLER.after(self.CHECK_FREQUENCY,
                          lambda: self.check_thread(ssid_list_process,
                                                    self.display_ssids))
+        
+        self.menubar = tk.Menu(self)
 
     def _setup_menus(self):
         self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
