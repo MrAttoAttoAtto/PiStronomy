@@ -18,9 +18,15 @@ class WifiScreen(Page):
         #setup things
         super().__init__(parent)
 
+        self.config(bg="black")
+
         self.current_network = 'NOT CONNECTED'
 
-        self.known_configurations = json.load(open("wifi_settings.json"))
+        try:
+            self.known_configurations = json.load(open("wifi_settings.json"))
+        except FileNotFoundError:
+            self.known_configurations = []
+            json.dump(self.known_configurations, open("wifi_settings.json", "w+"), sort_keys=True, indent=4)
         self.known_ssids = [diction['ssid'] for diction in self.known_configurations]
 
         load_image = tk.PhotoImage(file=self.loading_gif_path, format='gif -index 0')
@@ -30,15 +36,16 @@ class WifiScreen(Page):
         self.grid()
 
         #instruction label
-        instr_label = tk.Label(self, text="Please select a network to connect to:", font=("Helvetica", 34))
+        instr_label = tk.Label(self, text="Please select a network to connect to:", font=("Helvetica", 34), bg="black", fg="white")
         instr_label.grid(row=0, column=1, columnspan=3)
 
         #loading things
         self.load_label = tk.Label(self, image=load_image)
         self.load_label.image = load_image
 
-        self.ssid_scrollbar = tk.Scrollbar(self)
-        self.ssid_listbox = tk.Listbox(self, yscrollcommand=self.ssid_scrollbar.set, font=("Helvetica", 20))
+        self.ssid_scrollbar = tk.Scrollbar(self, bg="black")
+        self.ssid_listbox = tk.Listbox(self, yscrollcommand=self.ssid_scrollbar.set, font=("Helvetica", 20),
+                                       selectbackground='#363636', bg="black", fg="white")
 
         if WINDOWS:
             self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=37)
@@ -46,16 +53,19 @@ class WifiScreen(Page):
             self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=28)
 
         #submit button things
-        submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green', activeforeground='green', bg="black")
+        submit_button = tk.Button(self, text="Connect", command=self.wifi_connect, font=("Helvetica", 20), fg='green',
+                                  activeforeground='green', bg="black", activebackground='#262626')
         #submit_button.image = lockedButton
         submit_button.grid(row=4, column=2, pady=16)
 
         #back button things
-        back_button = tk.Button(self, text="Back", command=self.back, font=("Helvetica", 20), fg='red', activeforeground='red')
+        back_button = tk.Button(self, text="Back", command=self.back, font=("Helvetica", 20), fg='red',
+                                activeforeground='red', bg='black', activebackground='#262626')
         back_button.grid(row=4, column=1, pady=16)
 
         #refresh button things
-        refresh_button = tk.Button(self, text="Refresh", command=self.wifi_refresh, font=("Helvetica", 20), fg='cyan', activeforeground='cyan')
+        refresh_button = tk.Button(self, text="Refresh", command=self.wifi_refresh, font=("Helvetica", 20), fg='cyan',
+                                   activeforeground='cyan', bg='black', activebackground='#262626')
         refresh_button.grid(row=4, column=3, pady=16)
 
         CONTROLLER.after(self.LOADING_GIF_FREQUENCY, lambda: self.update_loading_gif(1, self.load_label, time.time()))
@@ -164,10 +174,10 @@ class WifiScreen(Page):
             self.ssid_listbox.insert(tk.END, ssid)
 
         if 'connect_index' in locals():
-            self.ssid_listbox.itemconfig(connect_index, fg='green')
+            self.ssid_listbox.itemconfig(connect_index, fg='green', selectforeground="green")
 
         for index in saved_available_indexes:
-            self.ssid_listbox.itemconfig(index, fg='cyan')
+            self.ssid_listbox.itemconfig(index, fg='cyan', selectforeground="cyan")
 
         self.ssid_listbox.grid(row=1, column=0, rowspan=3, columnspan=4, sticky=tk.N+tk.S+tk.E+tk.W)
 
@@ -180,7 +190,7 @@ class WifiScreen(Page):
             self.display_error("You can't connect to the same network you're connected to!", "Connection error")
             return
 
-        if selected_ssid in self.known_ssids:
+        if selected_ssid[:-8] in self.known_ssids:
             selected_ssid = selected_ssid[:-8]
 
         if not selected_ssid in self.known_ssids:
@@ -191,8 +201,9 @@ class WifiScreen(Page):
                 return
 
             self.known_configurations.append({"ssid":selected_ssid, "psk":psk})
+            self.known_ssids = [diction['ssid'] for diction in self.known_configurations]
 
-            json.dump(self.known_configurations, open("wifi_settings.json", "w"))
+            json.dump(self.known_configurations, open("wifi_settings.json", "w"), sort_keys=True, indent=4)
 
         else:
             for diction in self.known_configurations:
@@ -237,9 +248,14 @@ class WifiScreen(Page):
     def delete_saved_connection(self):
         selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
 
-        if selected_ssid not in self.known_ssids:
+        if selected_ssid[:-8] not in self.known_ssids:
             self.display_error("No login is saved for this wifi!", "No data found")
             return
+
+        selected_ssid = selected_ssid[:-8]
+
+        print(selected_ssid)
+        print(self.known_ssids)
 
         resp = messagebox.askyesno("Delete \"{}\"".format(selected_ssid), "Are you sure you want to delete the password for \"{}\"?".format(selected_ssid))
 
@@ -250,8 +266,12 @@ class WifiScreen(Page):
             for index, ssid in enumerate(self.known_ssids):
                 if ssid == selected_ssid:
                     del self.known_ssids[index]
+            
+            self.known_ssids = [diction['ssid'] for diction in self.known_configurations]
 
-            json.dump(self.known_configurations, open("wifi_settings.json", "w"))
+            json.dump(self.known_configurations, open("wifi_settings.json", "w"), sort_keys=True, indent=4)
+            
+            self.wifi_refresh()
 
     def update_ssids(self):
         try:

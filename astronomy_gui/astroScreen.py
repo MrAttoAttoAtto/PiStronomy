@@ -28,12 +28,6 @@ WINDOWS = os.name == 'nt'
 
 SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "/home/pi/Pictures"
 
-# the altitude at which it is considered impossible to see a star (i.e. too close to the horizon)
-UNSEEABLE_START_ALTITUDE = 20
-
-# the resolution (x and y) that each image is resized to (to fit)
-IMAGE_RESOLUTION = (135, 135)
-
 # astronomy main screen class
 class AstroScreen(Page):
     # Pixel ofsets for the pixel shifts of the 3x3 sky view
@@ -43,9 +37,14 @@ class AstroScreen(Page):
         (256, -256), (0, -256), (-256, -256)
     ]
 
+    # the resolution (x and y) that each image is resized to (to fit)
+    IMAGE_RESOLUTION = (135, 135)
+
     def __init__(self, parent):
         #setup things
         super().__init__(parent)
+
+        self.latest_file_loc = ''
 
         self.all_coords = []
 
@@ -120,6 +119,7 @@ class AstroScreen(Page):
         # setting up the file submenu
         file_menu = tk.Menu(self.menubar, tearoff=0, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
                             activebackground='#262626', activeforeground='white')
+        file_menu.add_command(label="Save", command=self.save_image)
         file_menu.add_command(label="Save As", command=self.save_as_image)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=CONTROLLER.destroy)
@@ -360,7 +360,7 @@ class AstroScreen(Page):
             if not all_cached:
                 self.image_label_list[index].grid_remove()
             
-            image = image.resize(IMAGE_RESOLUTION, ANTIALIAS)
+            image = image.resize(self.IMAGE_RESOLUTION, ANTIALIAS)
 
             tk_image = ImageTk.PhotoImage(image)
 
@@ -635,6 +635,28 @@ Within {} (Constellation)
 
         self.display_info("Time successfully changed to \"{}\"".format(obstime), "Time change successful")
     
+    def save_image(self):
+        if self.latest_file_loc == '':
+            self.save_as_image()
+            return
+
+        fil_name = time.strftime("%Y-%m-%d %Hh %Mm %Ss")
+
+        full_path = self.latest_file_loc + fil_name + ".png"
+
+        full_im = Image.new('RGB', (768, 768))
+
+        for shiftx, shifty in self.IMAGE_PIXEL_OFFSETS:
+            true_shiftx = shiftx + self.shiftx
+            true_shifty = shifty + self.shifty
+
+            positional_shiftx = abs(shiftx - 256)
+            positional_shifty = abs(shifty - 256)
+
+            full_im.paste(self.image_cache[(true_shiftx, true_shifty)], (positional_shiftx, positional_shifty))
+        
+        full_im.save(full_path)
+    
     def save_as_image(self):
         fil = filedialog.asksaveasfilename(defaultextension='.png', filetypes=[("PNG", ".png"), ("JPEG", ".jpeg"),
                                                                            ("JPEG", ".jpg"), ("GIF", ".gif"),
@@ -643,6 +665,10 @@ Within {} (Constellation)
         
         if fil == '':
             return
+
+        self.latest_file_loc = '/'.join(fil.split('/')[:-1]) + '/'
+
+        print(self.latest_file_loc)
 
         full_im = Image.new('RGB', (768, 768))
 
