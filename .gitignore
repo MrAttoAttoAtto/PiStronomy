@@ -105,3 +105,5 @@ ENV/
 
 # temporary photo
 noot.png
+# wifi stuphs
+wifi_settings.json
