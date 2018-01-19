@@ -108,6 +108,7 @@ class WifiScreen(Page):
         help_menu.add_command(label="Using this screen", command=self.how_to)
         help_menu.add_command(label="Deleting saved credentials", command=self.how_del)
         help_menu.add_command(label="Using a keyboard from your phone", command=self.how_use_phone)
+        help_menu.add_command(label="Special Thanks", command=self.special_thanks)
 
         self.menubar.add_cascade(label='File', menu=file_menu)
         self.menubar.add_cascade(label="Wifi", menu=wifi_menu)
@@ -146,6 +147,12 @@ class WifiScreen(Page):
                        "should be pressed, and then the special key pressed AGAIN to release it, otherwise it will not work.")
 
         self.display_info(info_string, "Using your phone to control the keyboard")
+    
+    def special_thanks(self):
+        info_string = ("Special thanks to:\nBhuvan Belur for some female-female cables for testing\nJoe Bell for " +
+                       "many ideas that I could incorporate int omy program\nProbably some other people")
+
+        self.display_info(info_string, "Special Thanks")
 
     def display_ssids(self):
         try:
