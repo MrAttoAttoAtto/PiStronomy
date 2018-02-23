@@ -26,22 +26,29 @@ from tools import (convert_altaz_to_radec, from_deg_rep, from_hour_rep,
 # True is the system is windows, False otherwise
 WINDOWS = os.name == 'nt'
 
+# Initial save dir for different OSes
 SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "/home/pi/Pictures"
 
-# astronomy main screen class
 class AstroScreen(Page):
-    # Pixel ofsets for the pixel shifts of the 3x3 sky view
+    """
+    The class for an instance of Page that handlesall astronomy-type functions
+    """
+
+    # Pixel offsets for the pixel shifts of the 3x3 sky view
     IMAGE_PIXEL_OFFSETS = [
         (256, 256),  (0, 256),  (-256, 256),
         (256, 0),    (0, 0),    (-256, 0),
         (256, -256), (0, -256), (-256, -256)
     ]
 
-    # the resolution (x and y) that each image is resized to (to fit)
+    # The resolution (x and y) that each image is resized to (to fit)
     IMAGE_RESOLUTION = (135, 135)
 
     def __init__(self, parent):
-        #setup things
+        """
+        Does the page setup for the astronomy screen
+        """
+
         super().__init__(parent)
 
         self.latest_file_loc = ''
@@ -113,6 +120,10 @@ class AstroScreen(Page):
         self.generate_batch_images(0, 0)
     
     def _setup_menus(self):
+        """
+        Sets up the main menu for the astronomy screen
+        """
+
         self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
                                activebackground='#262626', activeforeground='white', borderwidth=1, relief=tk.SUNKEN)
 
@@ -175,12 +186,21 @@ class AstroScreen(Page):
         CONTROLLER.config(menu=self.menubar)
 
     def set_location(self):
+        """
+        Sets a real-world location to operate from (for some calculations)
+        """
+
         location = simpledialog.askstring("Enter new location", "Please enter a new location (astronomical site on Earth)\nThe location is currently \"{}\"".format(self.location), parent=self)
 
         if location is not None:
             self.update_location(location)
     
     def set_time(self):
+        """
+        Sets the time to work with for various calculations, or sets it to being
+        the current time
+        """
+
         if not self.time_manual:
             self.time = time.strftime("%Y-%m-%d %H:%M:%S")
 
