@@ -1,3 +1,7 @@
+"""
+Opens the gui
+"""
+
 import tkinter as tk
 
 from astronomy_gui import pages

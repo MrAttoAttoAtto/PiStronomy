@@ -6,9 +6,11 @@ from collections import OrderedDict
 from astropy.time import Time
 from astropy.coordinates import EarthLocation, get_body, solar_system_ephemeris, get_sun, get_moon
 
+# Queue to hold the planet locations
 PLANET_COORDINATES = Queue(1)
 PLANET_COORDINATES.put([])
 
+# Makes an ordered dictionary (to deal with linux) to store the values of the planets
 MAPPING_DICT = [
     ['Mercury', 0],
     ['Venus', 1],
@@ -24,6 +26,10 @@ MAPPING_DICT = [
 MAPPING_DICT = OrderedDict(MAPPING_DICT)
 
 def get_planet_coords(obstime, loc, manual=False):
+    """
+    Gets the coordinates of the planets (and the sun and pluto and the moon)
+    and return them in a list
+    """
     if not manual:
         real_time = Time(time.strftime("%Y-%m-%d %H:%M:%S"))
     else:
@@ -60,6 +66,9 @@ def get_planet_coords(obstime, loc, manual=False):
     return coordinates
 
 def constant_planet_update(fake=False, skip=False, screen=None):
+    """
+    Constantly gets the planet coordinates and updates the queue with them
+    """
     new_coords = get_planet_coords(screen.time, screen.location, screen.time_manual)
 
     try:

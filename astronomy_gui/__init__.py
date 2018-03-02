@@ -1,15 +1,14 @@
-from astronomy_gui import lockedScreen
 from astronomy_gui import wifiScreen
 from astronomy_gui import astroScreen
 
+# Sets the names of both the screens to be imported with *
 __all__ = [
-    'lockedScreen',
     'astroScreen',
     'wifiScreen'
 ]
 
+# Gets the classes of the screens into a list to be imported
 pages = [
-    lockedScreen.LockedScreen,
     wifiScreen.WifiScreen,
     astroScreen.AstroScreen
 ]

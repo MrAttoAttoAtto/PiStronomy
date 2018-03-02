@@ -16,6 +16,9 @@ else:
     WINDOWS = False
 
 def from_hour_rep(hours, mins, secs):
+    """
+    Converts a human hour min sec representation to one number of hours
+    """
     answer = hours
 
     answer += mins/60
@@ -25,6 +28,9 @@ def from_hour_rep(hours, mins, secs):
     return answer
 
 def from_deg_rep(deg, mins, secs):
+    """
+    Converts a human degree min sec representation to one number of degrees
+    """
     if abs(deg) != deg:
         negative = True
         deg = abs(deg)
@@ -40,11 +46,17 @@ def from_deg_rep(deg, mins, secs):
     return -answer if negative else answer
 
 def from_hex_unicode_rep(ssid):
+    """
+    Converts a hexadecimal unicode code to real python chars
+    """
     ssid = ssid.decode('unicode-escape')
     ssid = ssid.encode('latin-1').decode('utf8')
     return urllib.parse.unquote(ssid)
 
 def get_ip():
+    """
+    Gets the current internal IP of the pi
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -57,6 +69,9 @@ def get_ip():
     return current_ip
 
 def get_all_ssids(block=True):
+    """
+    Gets all ssids in range
+    """
     ssid_list = []
 
     if WINDOWS:
@@ -94,6 +109,9 @@ def get_all_ssids(block=True):
     return ssid_list
 
 def get_current_ssid(block=True):
+    """
+    Gets the ssid of the currently connected network
+    """
     if WINDOWS:
         command = ['netsh', 'wlan', 'show', 'interfaces']
         return "NOT CONNECTED"
@@ -110,6 +128,9 @@ def get_current_ssid(block=True):
     return from_hex_unicode_rep(raw_connection_data)[:-1]
 
 def mobile_connect(ssid, password):
+    """
+    Connects to a wifi based on ssid and password
+    """
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
     str_to_write = '\n#mobile_connect\nnetwork={\n\tssid="%s"\n\tpsk="%s"\n\tpriority=2\n}' % (ssid, password)
 
@@ -126,6 +147,9 @@ def mobile_connect(ssid, password):
     return
 
 def delete_prior_connection():
+    """
+    Deletes the mobile connection that was made that session
+    """
     if WINDOWS:
         return
 
@@ -151,6 +175,9 @@ def delete_prior_connection():
     update_wlan_config.communicate()
 
 def get_constellation(righta, dec):
+    """
+    Gets the constellation a RA and DEC is in
+    """
     return SkyCoord(righta, dec, unit=("hour", "deg")).get_constellation()
 
 def get_coordinates_from_observer(righta, dec, location, obstime):
