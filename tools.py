@@ -176,11 +176,14 @@ def delete_prior_connection():
 
 def get_constellation(righta, dec):
     """
-    Gets the constellation a RA and DEC is in
+    Gets the constellation an RA and DEC is in
     """
     return SkyCoord(righta, dec, unit=("hour", "deg")).get_constellation()
 
 def get_coordinates_from_observer(righta, dec, location, obstime):
+    """
+    Gets the Alt and Az of an Ra and Dec from a location and time 
+    """
     real_time = Time(obstime)
     real_location = EarthLocation.of_site(location)
 
@@ -191,6 +194,9 @@ def get_coordinates_from_observer(righta, dec, location, obstime):
     return alt_az.az.deg, alt_az.alt.deg
 
 def convert_altaz_to_radec(az, alt, location, obstime):
+    """
+    Converts AltAz coords to RaDec coords
+    """
     real_time = Time(obstime)
     real_location = EarthLocation.of_site(location)
 
@@ -200,6 +206,9 @@ def convert_altaz_to_radec(az, alt, location, obstime):
     return radec_coords.ra.hour, radec_coords.dec.deg
 
 def get_earth_location_coordinates(location):
+    """
+    Gets the Lat and Long on earth from a location (Site)
+    """
     real_location = EarthLocation.of_site(location)
 
     long_lat_repr = real_location.to_geodetic()
@@ -209,11 +218,17 @@ def get_earth_location_coordinates(location):
     return lat, longi
 
 def get_object_coordinates(obj):
+    """
+    Get coordinates from an object name
+    """
     coordinates = SkyCoord.from_name(obj)
 
     return coordinates.ra.hour, coordinates.dec.deg
 
 def get_magnitude(obj):
+    """
+    Gets the magnitude of an object (if it exists)
+    """
     param_dict = {
         "request":"doQuery",
         "lang":"adql",
@@ -231,6 +246,9 @@ def get_magnitude(obj):
     return float(mag)
 
 def safe_put(q, item):
+    """
+    Puts an item into a queue safely (yay)
+    """
     try:
         q.put(item, block=False)
     except queue.Full:
