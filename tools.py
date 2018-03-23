@@ -13,6 +13,7 @@ from astropy.time import Time
 if os.name == 'nt':
     WINDOWS = True
 else:
+    import RPi.GPIO as GPIO
     WINDOWS = False
 
 def from_hour_rep(hours, mins, secs):
@@ -254,3 +255,12 @@ def safe_put(q, item):
     except queue.Full:
         q.get()
         q.put(item, block=False)
+
+def setup_gpio():
+    '''Sets up the joystick GPIO'''
+    GPIO.setmode(GPIO.BCM)
+    
+    GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)

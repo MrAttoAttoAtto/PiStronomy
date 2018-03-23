@@ -23,6 +23,10 @@ from tools import (convert_altaz_to_radec, from_deg_rep, from_hour_rep,
                    get_earth_location_coordinates, get_magnitude,
                    get_object_coordinates, safe_put)
 
+if os.name != "nt":
+    from RPi.GPIO import GPIO
+
+
 # True is the system is windows, False otherwise
 WINDOWS = os.name == 'nt'
 
@@ -484,6 +488,12 @@ class AstroScreen(Page):
         CONTROLLER.unbind("<Control-w>")
         CONTROLLER.unbind("<Control-s>")
 
+        if os.name != "nt":
+            GPIO.remove_event_detect(15)
+            GPIO.remove_event_detect(17)
+            GPIO.remove_event_detect(18)
+            GPIO.remove_event_detect(27)
+
         CONTROLLER.config(menu=tk.Menu(self))
         CONTROLLER.show_page('WifiScreen')
     
@@ -500,6 +510,12 @@ class AstroScreen(Page):
         CONTROLLER.bind("<Control-d>", lambda e: self.generate_batch_images(-256, 0))
         CONTROLLER.bind("<Control-w>", lambda e: self.generate_batch_images(0, 256))
         CONTROLLER.bind("<Control-s>", lambda e: self.generate_batch_images(0, -256))
+
+        if os.name != "nt":
+            GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=300)
+            GPIO.add_event_detect(17, GPIO.FALLING, callback=lambda e: self.generate_batch_images(-256, 0), bouncetime=300)
+            GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, 256), bouncetime=300)
+            GPIO.add_event_detect(27, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=300)
 
     def show_planet(self, index):
         """

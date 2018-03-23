@@ -5,6 +5,9 @@ import tkinter.font
 
 from tools import delete_prior_connection
 
+if os.name != "nt":
+    import RPi.GPIO as GPIO
+
 class Controller(tk.Tk):
     """
     Class for a Tk instance which controls its own Page instances
@@ -68,6 +71,8 @@ class Controller(tk.Tk):
         """
         super().destroy()
         delete_prior_connection()
+        if os.name != "nt":
+            GPIO.cleanup()
 
 # Fullscreen only if on the Pi
 if os.name == "nt":
