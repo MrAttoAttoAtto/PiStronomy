@@ -513,10 +513,10 @@ class AstroScreen(Page):
         CONTROLLER.bind("<Control-s>", lambda e: self.generate_batch_images(0, -256))
 
         if os.name != "nt":
-            GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=300)
-            GPIO.add_event_detect(17, GPIO.FALLING, callback=lambda e: self.generate_batch_images(-256, 0), bouncetime=300)
-            GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=300)
-            GPIO.add_event_detect(27, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, 256), bouncetime=300)
+            GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=1250)
+            GPIO.add_event_detect(17, GPIO.FALLING, callback=lambda e: self.generate_batch_images(-256, 0), bouncetime=1250)
+            GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=1250)
+            GPIO.add_event_detect(27, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, 256), bouncetime=1250)
 
     def show_planet(self, index):
         """
