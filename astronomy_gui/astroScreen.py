@@ -24,7 +24,7 @@ from tools import (convert_altaz_to_radec, from_deg_rep, from_hour_rep,
                    get_object_coordinates, safe_put)
 
 if os.name != "nt":
-    from RPi.GPIO import GPIO
+    import RPi.GPIO as GPIO
 
 
 # True is the system is windows, False otherwise
@@ -421,6 +421,7 @@ class AstroScreen(Page):
         """
         Generates all 9 images, either by getting them from the cache or from the interwebz
         """
+        print("SHIFTX: " + str(shiftx) + " SHIFTY: " + str(shifty))
         if overwrite_cache:
             self.image_cache = {}
 
@@ -512,10 +513,10 @@ class AstroScreen(Page):
         CONTROLLER.bind("<Control-s>", lambda e: self.generate_batch_images(0, -256))
 
         if os.name != "nt":
-            GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=300)
+            GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=300)
             GPIO.add_event_detect(17, GPIO.FALLING, callback=lambda e: self.generate_batch_images(-256, 0), bouncetime=300)
-            GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, 256), bouncetime=300)
-            GPIO.add_event_detect(27, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=300)
+            GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=300)
+            GPIO.add_event_detect(27, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, 256), bouncetime=300)
 
     def show_planet(self, index):
         """
