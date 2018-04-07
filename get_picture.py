@@ -7,6 +7,9 @@ from PIL import Image
 import tools
 
 def old_get_sky_picture(param_dict={}, ra=None, de=None):
+    """
+    Deprecated function to get the sky picture
+    """
     param_dict['survey'] = 'DSS2'
 
     if ra != None:
@@ -28,6 +31,9 @@ def old_get_sky_picture(param_dict={}, ra=None, de=None):
 
 
 def get_sky_picture(base_ra, base_de, shiftx=0, shifty=0, magnification_level=0):
+    """
+    Gets the picture of a specific part of the sky, by giving RA and DEC and a magnification
+    """
     param_dict = {'survey':'DSS2'}
 
     param_dict['angle'] = 1.25 * (0.75**magnification_level)
@@ -53,6 +59,9 @@ def get_sky_picture(base_ra, base_de, shiftx=0, shifty=0, magnification_level=0)
     return image
 
 def prompt_sky_picture():
+    """
+    Really old funtion to test the get_sky_picture function
+    """
     hours = int(input('Hours: '))
     mins = int(input('Minutes: '))
     secs = int(input('Seconds: '))

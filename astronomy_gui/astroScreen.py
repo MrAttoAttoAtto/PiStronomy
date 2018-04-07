@@ -23,25 +23,36 @@ from tools import (convert_altaz_to_radec, from_deg_rep, from_hour_rep,
                    get_earth_location_coordinates, get_magnitude,
                    get_object_coordinates, safe_put)
 
+if os.name != "nt":
+    import RPi.GPIO as GPIO
+
+
 # True is the system is windows, False otherwise
 WINDOWS = os.name == 'nt'
 
+# Initial save dir for different OSes
 SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "/home/pi/Pictures"
 
-# astronomy main screen class
 class AstroScreen(Page):
-    # Pixel ofsets for the pixel shifts of the 3x3 sky view
+    """
+    The class for an instance of Page that handlesall astronomy-type functions
+    """
+
+    # Pixel offsets for the pixel shifts of the 3x3 sky view
     IMAGE_PIXEL_OFFSETS = [
         (256, 256),  (0, 256),  (-256, 256),
         (256, 0),    (0, 0),    (-256, 0),
         (256, -256), (0, -256), (-256, -256)
     ]
 
-    # the resolution (x and y) that each image is resized to (to fit)
+    # The resolution (x and y) that each image is resized to (to fit)
     IMAGE_RESOLUTION = (135, 135)
 
     def __init__(self, parent):
-        #setup things
+        """
+        Does the page setup for the astronomy screen
+        """
+
         super().__init__(parent)
 
         self.latest_file_loc = ''
@@ -113,6 +124,10 @@ class AstroScreen(Page):
         self.generate_batch_images(0, 0)
     
     def _setup_menus(self):
+        """
+        Sets up the main menu for the astronomy screen
+        """
+
         self.menubar = tk.Menu(self, font=("Helvetica", self.MENU_FONT_SIZE), background='black', foreground='white',
                                activebackground='#262626', activeforeground='white', borderwidth=1, relief=tk.SUNKEN)
 
@@ -175,12 +190,21 @@ class AstroScreen(Page):
         CONTROLLER.config(menu=self.menubar)
 
     def set_location(self):
+        """
+        Sets a real-world location to operate from (for some calculations)
+        """
+
         location = simpledialog.askstring("Enter new location", "Please enter a new location (astronomical site on Earth)\nThe location is currently \"{}\"".format(self.location), parent=self)
 
         if location is not None:
             self.update_location(location)
     
     def set_time(self):
+        """
+        Sets the time to work with for various calculations, or sets it to being
+        the current time
+        """
+
         if not self.time_manual:
             self.time = time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -197,12 +221,18 @@ class AstroScreen(Page):
                 self.update_time(obstime)
     
     def set_magnification(self):
+        """
+        Sets the magnification to view different sizes
+        """
         new_mag = simpledialog.askfloat("Enter new magnification", "Please enter a new magnification (0 is the default, -1 is smaller and 1 is bigger.)\nThe magnification is currently {}".format(self.magnification), parent=self)
 
         if new_mag is not None:
             self.generate_batch_images(0, 0, new_base_magnification=new_mag, overwrite_cache=True)
 
     def show_sites(self):
+        """
+        Displays the different sites on earth which are available
+        """
         locations = EarthLocation.get_site_names()
 
         locations = [location for location in locations if location != '']
@@ -215,11 +245,17 @@ class AstroScreen(Page):
         self.display_info("List of astronomical sites:\n{}".format(location_string), "List of sites")
     
     def slow_move(self):
+        """
+        Blames the pi for being bad
+        """
         info_string = "The movement will be slow for around the first minute the application is open, after that it should operate noticibly faster!"
 
         self.display_info(info_string, "Slow startup")
     
     def save_vs_saveas(self):
+        """
+        Explains the difference between "save" and "save as"
+        """
         info_string = ("\"Save as\" ALWAYS asks you for the folder and name you would like to save it as. " +
                        "\"Save\", on the other hand, only asks the first time (or never if \"Save as\" has already been used) " +
                        "and then saves the picture straight to the already-selected folder with the time as its name. " +
@@ -228,6 +264,9 @@ class AstroScreen(Page):
         self.display_info(info_string, "Save and Save as")
     
     def refresh_planets(self):
+        """
+        Refreshes the planet locations
+        """
         planet_process = threading.Thread(None, lambda: constant_planet_update(True, screen=self))
         planet_process.start()
 
@@ -236,6 +275,9 @@ class AstroScreen(Page):
                                                    lambda: self.display_info("Planet positions successfully updated", "Planets updated")))
     
     def set_coordinates(self):
+        """
+        Sets the RA and DEC of the piece of the sky you are looking at
+        """
         coordinate_string = simpledialog.askstring("Enter new coordinates", "Please enter new coordinates.\nThe formats \"(hours, minutes, seconds), (degrees, arcmins, arcsecs)\"\n" +
                                                    "and \"hours, degrees\" (where the latter takes values with decimal points) are both acceptable." +
                                                    "\nThe current values are: {} hours, {} degrees".format(round(self.base_ra, 2), round(self.base_de, 2)), parent=self)
@@ -282,6 +324,9 @@ class AstroScreen(Page):
         self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
     
     def set_azalt_coordinates(self):
+        """
+        Sets the coordinates in terms of AZ and ALT based on where you are located on earth
+        """
         if not self.time_manual:
             self.time = time.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -335,6 +380,9 @@ class AstroScreen(Page):
         self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
 
     def display_image(self, all_cached=False):
+        """
+        Displays the astronomy images
+        """
         print("Pics done")
 
         self.load_label.grid_remove()
@@ -373,6 +421,10 @@ class AstroScreen(Page):
             self.image_label_list[index].grid()
     
     def generate_batch_images(self, shiftx, shifty, new_base_ra=None, new_base_de=None, new_base_magnification=None, overwrite_cache=False):
+        """
+        Generates all 9 images, either by getting them from the cache or from the interwebz
+        """
+        print("SHIFTX: " + str(shiftx) + " SHIFTY: " + str(shifty))
         if overwrite_cache:
             self.image_cache = {}
 
@@ -427,15 +479,32 @@ class AstroScreen(Page):
                                                    True))
     
     def wifi_button_func(self):
+        """
+        Unbinds all arrow keys and shows the wifi screen
+        """
         CONTROLLER.unbind("<Left>")
         CONTROLLER.unbind("<Right>")
         CONTROLLER.unbind("<Up>")
         CONTROLLER.unbind("<Down>")
 
+        CONTROLLER.unbind("<Control-a>")
+        CONTROLLER.unbind("<Control-d>")
+        CONTROLLER.unbind("<Control-w>")
+        CONTROLLER.unbind("<Control-s>")
+
+        if os.name != "nt":
+            GPIO.remove_event_detect(15)
+            GPIO.remove_event_detect(17)
+            GPIO.remove_event_detect(18)
+            GPIO.remove_event_detect(27)
+
         CONTROLLER.config(menu=tk.Menu(self))
         CONTROLLER.show_page('WifiScreen')
     
     def _do_bindings(self):
+        """
+        Sets the key bindings for moving through the sky with the correct params
+        """
         CONTROLLER.bind("<Left>", lambda e: self.generate_batch_images(256, 0))
         CONTROLLER.bind("<Right>", lambda e: self.generate_batch_images(-256, 0))
         CONTROLLER.bind("<Up>", lambda e: self.generate_batch_images(0, 256))
@@ -446,7 +515,16 @@ class AstroScreen(Page):
         CONTROLLER.bind("<Control-w>", lambda e: self.generate_batch_images(0, 256))
         CONTROLLER.bind("<Control-s>", lambda e: self.generate_batch_images(0, -256))
 
+        if os.name != "nt":
+            GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=1250)
+            GPIO.add_event_detect(17, GPIO.FALLING, callback=lambda e: self.generate_batch_images(-256, 0), bouncetime=1250)
+            GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=1250)
+            GPIO.add_event_detect(27, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, 256), bouncetime=1250)
+
     def show_planet(self, index):
+        """
+        Shows the location where a planet is at the specified time
+        """
         try:
             self.all_coords = PLANET_COORDINATES.get(block=False)
         except queue.Empty:
@@ -461,6 +539,9 @@ class AstroScreen(Page):
         self.generate_batch_images(0, 0, planet_ra, planet_de, overwrite_cache=True)
     
     def show_planet_info(self, index):
+        """
+        Shows the planet info for the planet at the specified time
+        """
         try:
             self.all_coords = PLANET_COORDINATES.get(block=False)
         except queue.Empty:
@@ -495,6 +576,9 @@ Within {} (Constellation)
         self.display_info(info_string, "Planet info")
     
     def show_object(self):
+        """
+        Shows the location of an object
+        """
         obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: , "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor", "Orion")', parent=self)
 
         if obj is None:
@@ -509,6 +593,9 @@ Within {} (Constellation)
         self.generate_batch_images(0, 0, righta, dec, overwrite_cache=True)
     
     def show_object_info(self):
+        """
+        Shows the info pertaining to an object at the specified time
+        """
         obj = simpledialog.askstring("Enter object name", 'Enter the name of the celestial object you would like to find\n(Examples: "Polaris", "M1", "Pleiades", "Andromeda", "Ursa Minor", "Orion")', parent=self)
 
         if obj is None:
@@ -547,6 +634,9 @@ Within {} (Constellation)
         self.display_info(info_string, "Object info")
     
     def calculate_visibility(self, azim, alt, obstime, location, mag, sun=False, moon=False):
+        """
+        Calculates the visibility of an object based on a plethora of info
+        """
         visible_factor = 2
         impeders = []
         warnings = []
@@ -574,7 +664,7 @@ Within {} (Constellation)
                 elif sun_alt > -5:
                     if not moon:
                         visible_factor = visible_factor if visible_factor != 2 else 1
-                        impeders.append("being viewed when the sun is coming up")
+                        impeders.append("being viewed when the sun is almost above the horizon")
             
             if not moon and not sun:
                 if abs(moon_az-azim) < 2 or abs(moon_alt-alt) < 2:
@@ -617,6 +707,9 @@ Within {} (Constellation)
         return message
 
     def update_location(self, location):
+        """
+        Updates the location from which you view the stars
+        """
         try:
             self.lat, self.long = get_earth_location_coordinates(location.lower())
         except UnknownSiteException:
@@ -627,6 +720,9 @@ Within {} (Constellation)
         self.display_info("Location successfully changed to \"{}\"".format(location), "Location change successful")
 
     def update_time(self, obstime):
+        """
+        Updates the time at which you view the stars
+        """
         try:
             Time(obstime)
         except ValueError:
@@ -639,6 +735,9 @@ Within {} (Constellation)
         self.display_info("Time successfully changed to \"{}\"".format(obstime), "Time change successful")
     
     def save_image(self):
+        """
+        Saves the current image to an already specified location
+        """
         if self.latest_file_loc == '':
             self.save_as_image()
             return
@@ -661,6 +760,9 @@ Within {} (Constellation)
         full_im.save(full_path)
     
     def save_as_image(self):
+        """
+        Saves the current image, having been provided with a path
+        """
         fil = filedialog.asksaveasfilename(defaultextension='.png', filetypes=[("PNG", ".png"), ("JPEG", ".jpeg"),
                                                                            ("JPEG", ".jpg"), ("GIF", ".gif"),
                                                                            ("BMP", ".bmp")],
@@ -687,6 +789,9 @@ Within {} (Constellation)
         full_im.save(fil)
 
     def render(self, referral=False):
+        """
+        Does the bindings and sets the menubar if it has been redirected to from the wifi screen
+        """
         if referral:
             self._do_bindings()
             CONTROLLER.config(menu=self.menubar)

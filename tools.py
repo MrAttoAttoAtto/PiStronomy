@@ -13,9 +13,13 @@ from astropy.time import Time
 if os.name == 'nt':
     WINDOWS = True
 else:
+    import RPi.GPIO as GPIO
     WINDOWS = False
 
 def from_hour_rep(hours, mins, secs):
+    """
+    Converts a human hour min sec representation to one number of hours
+    """
     answer = hours
 
     answer += mins/60
@@ -25,6 +29,9 @@ def from_hour_rep(hours, mins, secs):
     return answer
 
 def from_deg_rep(deg, mins, secs):
+    """
+    Converts a human degree min sec representation to one number of degrees
+    """
     if abs(deg) != deg:
         negative = True
         deg = abs(deg)
@@ -40,11 +47,17 @@ def from_deg_rep(deg, mins, secs):
     return -answer if negative else answer
 
 def from_hex_unicode_rep(ssid):
+    """
+    Converts a hexadecimal unicode code to real python chars
+    """
     ssid = ssid.decode('unicode-escape')
     ssid = ssid.encode('latin-1').decode('utf8')
     return urllib.parse.unquote(ssid)
 
 def get_ip():
+    """
+    Gets the current internal IP of the pi
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
@@ -57,6 +70,9 @@ def get_ip():
     return current_ip
 
 def get_all_ssids(block=True):
+    """
+    Gets all ssids in range
+    """
     ssid_list = []
 
     if WINDOWS:
@@ -94,6 +110,9 @@ def get_all_ssids(block=True):
     return ssid_list
 
 def get_current_ssid(block=True):
+    """
+    Gets the ssid of the currently connected network
+    """
     if WINDOWS:
         command = ['netsh', 'wlan', 'show', 'interfaces']
         return "NOT CONNECTED"
@@ -110,6 +129,9 @@ def get_current_ssid(block=True):
     return from_hex_unicode_rep(raw_connection_data)[:-1]
 
 def mobile_connect(ssid, password):
+    """
+    Connects to a wifi based on ssid and password
+    """
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]
     str_to_write = '\n#mobile_connect\nnetwork={\n\tssid="%s"\n\tpsk="%s"\n\tpriority=2\n}' % (ssid, password)
 
@@ -126,6 +148,9 @@ def mobile_connect(ssid, password):
     return
 
 def delete_prior_connection():
+    """
+    Deletes the mobile connection that was made that session
+    """
     if WINDOWS:
         return
 
@@ -151,9 +176,15 @@ def delete_prior_connection():
     update_wlan_config.communicate()
 
 def get_constellation(righta, dec):
+    """
+    Gets the constellation an RA and DEC is in
+    """
     return SkyCoord(righta, dec, unit=("hour", "deg")).get_constellation()
 
 def get_coordinates_from_observer(righta, dec, location, obstime):
+    """
+    Gets the Alt and Az of an Ra and Dec from a location and time 
+    """
     real_time = Time(obstime)
     real_location = EarthLocation.of_site(location)
 
@@ -164,6 +195,9 @@ def get_coordinates_from_observer(righta, dec, location, obstime):
     return alt_az.az.deg, alt_az.alt.deg
 
 def convert_altaz_to_radec(az, alt, location, obstime):
+    """
+    Converts AltAz coords to RaDec coords
+    """
     real_time = Time(obstime)
     real_location = EarthLocation.of_site(location)
 
@@ -173,6 +207,9 @@ def convert_altaz_to_radec(az, alt, location, obstime):
     return radec_coords.ra.hour, radec_coords.dec.deg
 
 def get_earth_location_coordinates(location):
+    """
+    Gets the Lat and Long on earth from a location (Site)
+    """
     real_location = EarthLocation.of_site(location)
 
     long_lat_repr = real_location.to_geodetic()
@@ -182,11 +219,17 @@ def get_earth_location_coordinates(location):
     return lat, longi
 
 def get_object_coordinates(obj):
+    """
+    Get coordinates from an object name
+    """
     coordinates = SkyCoord.from_name(obj)
 
     return coordinates.ra.hour, coordinates.dec.deg
 
 def get_magnitude(obj):
+    """
+    Gets the magnitude of an object (if it exists)
+    """
     param_dict = {
         "request":"doQuery",
         "lang":"adql",
@@ -204,8 +247,20 @@ def get_magnitude(obj):
     return float(mag)
 
 def safe_put(q, item):
+    """
+    Puts an item into a queue safely (yay)
+    """
     try:
         q.put(item, block=False)
     except queue.Full:
         q.get()
         q.put(item, block=False)
+
+def setup_gpio():
+    '''Sets up the joystick GPIO'''
+    GPIO.setmode(GPIO.BCM)
+    
+    GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(18, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_UP)
