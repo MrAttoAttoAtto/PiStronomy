@@ -253,7 +253,10 @@ class WifiScreen(Page):
         CONTROLLER.show_page('AstroScreen', True)
 
     def delete_saved_connection(self):
-        selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
+        try:
+            selected_ssid = self.ssid_listbox.get(self.ssid_listbox.curselection()[0])
+        except IndexError:
+            return
 
         if selected_ssid[:-8] not in self.known_ssids:
             self.display_error("No login is saved for this wifi!", "No data found")

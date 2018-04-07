@@ -207,7 +207,10 @@ class AstroScreen(Page):
 
         locations = [location for location in locations if location != '']
 
-        location_string = ', '.join(locations)
+        cutoff_index = locations.index("Whipple Observatory")
+        new_locations = locations[:cutoff_index+1]
+
+        location_string = ', '.join(new_locations)
 
         self.display_info("List of astronomical sites:\n{}".format(location_string), "List of sites")
     
@@ -558,7 +561,7 @@ Within {} (Constellation)
             sun_ra, sun_dec = self.all_coords[9]
 
             moon_az, moon_alt = get_coordinates_from_observer(moon_ra, moon_dec, location, obstime)
-            sun_az, sun_alt = get_coordinates_from_observer(sun_ra, sun_dec, location, obstime)
+            sun_alt = get_coordinates_from_observer(sun_ra, sun_dec, location, obstime)[1]
 
             if not sun:
                 if sun_alt > 10:
