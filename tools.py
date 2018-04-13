@@ -1,19 +1,24 @@
 '''Tools for converting between units (and possibly other things)'''
-import os
+import platform
 import queue
-import requests
 import socket
 import subprocess
 import time
 import urllib.parse
 
+import requests
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord
 from astropy.time import Time
 
-if os.name == 'nt':
+if platform.system() == 'Linux':
+    import RPi.GPIO as GPIO
+    LINUX = True
+    WINDOWS = False
+elif platform.system() == "Windows":
+    LINUX = False
     WINDOWS = True
 else:
-    import RPi.GPIO as GPIO
+    LINUX = False
     WINDOWS = False
 
 def from_hour_rep(hours, mins, secs):
@@ -77,8 +82,10 @@ def get_all_ssids(block=True):
 
     if WINDOWS:
         command = ["netsh", "wlan", "show", "networks"]
-    else:
+    elif LINUX:
         command = ["sudo", "iw", "wlan0", "scan"]
+    else:
+        return []
 
     while block:
         try:
@@ -113,8 +120,8 @@ def get_current_ssid(block=True):
     """
     Gets the ssid of the currently connected network
     """
-    if WINDOWS:
-        command = ['netsh', 'wlan', 'show', 'interfaces']
+    if not LINUX:
+        #command = ['netsh', 'wlan', 'show', 'interfaces']
         return "NOT CONNECTED"
     else:
         command = ['iwgetid', '-r']
@@ -151,7 +158,7 @@ def delete_prior_connection():
     """
     Deletes the mobile connection that was made that session
     """
-    if WINDOWS:
+    if not LINUX:
         return
 
     command = ["wpa_cli", "-i", "wlan0", "reconfigure"]

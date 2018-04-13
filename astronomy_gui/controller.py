@@ -1,11 +1,12 @@
 '''The gui controller'''
-import os
+import platform
 import tkinter as tk
 import tkinter.font
 
 from tools import delete_prior_connection
 
-if os.name != "nt":
+LINUX = platform.system() == "Linux"
+if LINUX:
     import RPi.GPIO as GPIO
 
 class Controller(tk.Tk):
@@ -71,11 +72,11 @@ class Controller(tk.Tk):
         """
         super().destroy()
         delete_prior_connection()
-        if os.name != "nt":
+        if LINUX:
             GPIO.cleanup()
 
 # Fullscreen only if on the Pi
-if os.name == "nt":
+if not LINUX:
     CONTROLLER = Controller(False)
 else:
     CONTROLLER = Controller(True)

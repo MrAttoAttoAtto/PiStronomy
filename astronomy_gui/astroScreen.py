@@ -1,4 +1,5 @@
-import os
+import os.path
+import platform
 import queue
 import threading
 import time
@@ -23,15 +24,14 @@ from tools import (convert_altaz_to_radec, from_deg_rep, from_hour_rep,
                    get_earth_location_coordinates, get_magnitude,
                    get_object_coordinates, safe_put)
 
-if os.name != "nt":
+# True is the system is Linux, False otherwise
+LINUX = platform.system() == 'Linux'
+
+if LINUX:
     import RPi.GPIO as GPIO
 
-
-# True is the system is windows, False otherwise
-WINDOWS = os.name == 'nt'
-
 # Initial save dir for different OSes
-SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if WINDOWS else "/home/pi/Pictures"
+SAVE_INITIAL_DIR = "%userprofile%\\Pictures" if platform.system() == "Windows" else "/home/pi/Pictures" if LINUX else os.path.expanduser("~/Pictures")
 
 class AstroScreen(Page):
     """
@@ -492,7 +492,7 @@ class AstroScreen(Page):
         CONTROLLER.unbind("<Control-w>")
         CONTROLLER.unbind("<Control-s>")
 
-        if os.name != "nt":
+        if LINUX:
             GPIO.remove_event_detect(15)
             GPIO.remove_event_detect(17)
             GPIO.remove_event_detect(18)
@@ -515,7 +515,7 @@ class AstroScreen(Page):
         CONTROLLER.bind("<Control-w>", lambda e: self.generate_batch_images(0, 256))
         CONTROLLER.bind("<Control-s>", lambda e: self.generate_batch_images(0, -256))
 
-        if os.name != "nt":
+        if LINUX:
             GPIO.add_event_detect(15, GPIO.FALLING, callback=lambda e: self.generate_batch_images(0, -256), bouncetime=1250)
             GPIO.add_event_detect(17, GPIO.FALLING, callback=lambda e: self.generate_batch_images(-256, 0), bouncetime=1250)
             GPIO.add_event_detect(18, GPIO.FALLING, callback=lambda e: self.generate_batch_images(256, 0), bouncetime=1250)

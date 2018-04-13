@@ -1,5 +1,5 @@
 import json
-import os
+import platform
 import queue
 import threading
 import time
@@ -11,8 +11,8 @@ from astronomy_gui.page import Page
 from tools import get_all_ssids, mobile_connect, get_current_ssid, delete_prior_connection
 
 
-# Constant that is TRUE if being run on windows
-WINDOWS = os.name == 'nt'
+# Constant that is TRUE if being run on Linux
+LINUX = platform.system() == 'Linux'
 
 # wifi screen class
 class WifiScreen(Page):
@@ -59,7 +59,7 @@ class WifiScreen(Page):
                                        selectbackground='#363636', bg="black", fg="white")
 
         # Different OSes look good with different things
-        if WINDOWS:
+        if not LINUX:
             self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=37)
         else:
             self.load_label.grid(row=1, column=0, columnspan=5, rowspan=3, pady=28)
